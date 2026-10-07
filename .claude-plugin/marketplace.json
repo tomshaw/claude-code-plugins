@@ -18,6 +18,12 @@
       "source": "./mods/work-journal"
     },
     {
+      "name": "laravel-tooling",
+      "description": "Runs Pint and Larastan after Claude edits PHP, and Pest on demand, then shows the results in a live pane and the status line. /laravel-tooling opens the pane.",
+      "version": "0.1.0",
+      "source": "./mods/laravel-tooling"
+    },
+    {
       "name": "commit-summary",
       "description": "Summarizes git commits for a day, week or month (today by default), for everyone or one author, grouped by theme with line counts and highlights.",
       "version": "0.1.0",

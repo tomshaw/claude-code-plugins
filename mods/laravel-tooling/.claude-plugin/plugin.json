@@ -1,0 +1,24 @@
+{
+  "name": "laravel-tooling",
+  "version": "0.1.0",
+  "description": "Runs Pint and Larastan after Claude edits PHP, and Pest on demand, then shows the results in a live pane and the status line. /laravel-tooling opens the pane, /laravel-tooling run checks everything, /laravel-tooling tests [filter] runs Pest.",
+  "author": {
+    "name": "Tom Shaw",
+    "url": "https://github.com/tomshaw"
+  },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "autoTests": {
+      "type": "boolean",
+      "title": "Run tests after edits",
+      "description": "Also run the Pest suite automatically after Claude edits PHP. Off by default: tests run from the pane or /laravel-tooling tests.",
+      "default": false
+    },
+    "testFilter": {
+      "type": "string",
+      "title": "Default test filter",
+      "description": "A Pest --filter applied when tests run without one. Empty runs the whole suite.",
+      "default": ""
+    }
+  }
+}

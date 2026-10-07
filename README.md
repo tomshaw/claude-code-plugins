@@ -19,6 +19,7 @@ Add the marketplace once, then install any plugin by name:
 claude plugin marketplace add tomshaw/claude-code-plugins
 claude plugin install proofread@tomshaw
 claude plugin install work-journal@tomshaw
+claude plugin install laravel-tooling@tomshaw
 ```
 
 Or from inside Claude Code:
@@ -44,6 +45,7 @@ Plugins built on function hooks: they change what Claude Code shows and does, li
 | --- | --- | --- | --- |
 | ✍️ | **proofread** | Fixes spelling and grammar in your prompt before Claude reads it, and highlights your prompts with the fixed words called out | `/proofread` |
 | 📓 | **work-journal** | Daily, weekly and monthly reviews of your work, summarized from the prompts you typed: projects, threads, decisions and open items. In a pane, or as a webpage | `/journal` |
+| ⚒️ | **laravel-tooling** | Runs Pint and Larastan after Claude edits PHP, and Pest on demand, with the results in a live pane and the status line | `/laravel-tooling` |
 
 ## 🧠 Skills
 

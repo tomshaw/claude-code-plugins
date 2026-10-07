@@ -33,6 +33,21 @@ Reviews your work for a day, a week or a month, summarized from the prompts you 
 - Settings (`/plugin` → work-journal → configure): **Projects to leave out**, comma-separated parts of project paths, whose prompts are never read; and **Model**, `opus` (default), `sonnet` or `haiku`
 - The history file is Claude Code's own and undocumented, so a future version could change its format
 
+### ⚒️ laravel-tooling
+
+Checks a Laravel project with Pint, Larastan and Pest, and shows the results in a pane beside the chat.
+
+- After a turn in which Claude edited a `.php` file, it runs `pint --dirty` and then Larastan, using `phpstan.neon` (or `.dist`) with a 2G memory limit
+- Pest runs when you ask: `/laravel-tooling tests`, a filter after it (`/laravel-tooling tests Quote`), or `t` in the pane. Turn on **Run tests after edits** to run it after every PHP edit too
+- `/laravel-tooling` opens the pane, `run` runs all three, `pint` and `stan` run one each
+- The pane shows a row per check (`✓` pass, `✗` fail, `◐` running, `!` could not run) with its time, and each problem by file with its line. The Tests row counts tests as they finish
+- In the pane: `r` runs everything, `t` runs the tests, and `f` (when something fails) writes a prompt listing every failure into your input box, for you to edit and send
+- The status line reads like `Pint ✓ · Stan 3✗ · Tests 142`, and a toast shows when a passing check starts failing
+- It only turns on in a project with `artisan` and `vendor/bin/pint`
+- `pint --dirty` formats every uncommitted PHP file, not just the ones Claude edited
+- Pest runs without `--parallel`, since per-test results need its TeamCity output, so a full suite takes longer than `composer test`
+- Settings (`/plugin` → laravel-tooling → configure): **Run tests after edits** (off by default) and **Default test filter**
+
 ## 🛠️ Build your own
 
 Start from [Getting started with Claude Code mods](https://claude.dev/blog/getting-started-with-claude-code-mods/). The validate and test commands and the new-mod checklist are in [CONTRIBUTING.md](../CONTRIBUTING.md).
