@@ -42,7 +42,7 @@ CLAUDE_CONFIG_DIR=$(mktemp -d) claude plugin test mods/<name>
 
 - 📁 Put it in `<kind>/<name>/`. Mods keep their tests in `mods/<name>/tests/`
 - 🧾 Add an entry to `.claude-plugin/marketplace.json`
-- 📋 Add a row to the README table for its kind, and notes to `docs/`
+- 📋 Add a row to the README table for its kind, and notes to `docs/<kind>.md`
 - 🔢 Changed a plugin? Bump its version in its `plugin.json` and in `.claude-plugin/marketplace.json`
 
 Mod gotchas: [Build your own](docs/mods.md#%EF%B8%8F-build-your-own).

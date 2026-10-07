@@ -10,6 +10,12 @@
       "description": "Fixes spelling and grammar in your prompt before it reaches Claude, and draws your prompts in a highlighted box with the fixed words called out. /proofread turns it on or off.",
       "version": "0.1.0",
       "source": "./mods/proofread"
+    },
+    {
+      "name": "commit-summary",
+      "description": "Summarizes git commits for a day, week or month (today by default), for everyone or one author, grouped by theme with line counts and highlights.",
+      "version": "0.1.0",
+      "source": "./skills/commit-summary"
     }
   ]
 }

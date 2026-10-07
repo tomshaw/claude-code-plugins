@@ -1,0 +1,9 @@
+{
+  "name": "commit-summary",
+  "version": "0.1.0",
+  "description": "Summarizes git commits for a day, week or month (today by default), for everyone or one author, grouped by theme with line counts and highlights.",
+  "author": {
+    "name": "Tom Shaw",
+    "url": "https://github.com/tomshaw"
+  }
+}

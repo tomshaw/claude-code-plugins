@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <a href="#-install">Install</a> · <a href="#-mods">Mods</a> · <a href="docs/mods.md">Docs</a> · <a href="https://claude.dev/blog/getting-started-with-claude-code-mods/">What are mods?</a>
+  <a href="#-install">Install</a> · <a href="#-mods">Mods</a> · <a href="#-skills">Skills</a> · <a href="docs/mods.md">Docs</a> · <a href="https://claude.dev/blog/getting-started-with-claude-code-mods/">What are mods?</a>
 </p>
 
 ## 🚀 Install
@@ -43,7 +43,16 @@ Plugins built on function hooks: they change what Claude Code shows and does, li
 | --- | --- | --- | --- |
 | ✍️ | **proofread** | Fixes spelling and grammar in your prompt before Claude reads it, and highlights your prompts with the fixed words called out | `/proofread` |
 
+## 🧠 Skills
+
+Instructions Claude loads when your request matches them. Ask in plain words.
+
+| | Skill | What it does | Try |
+| --- | --- | --- | --- |
+| 📊 | **commit-summary** | Summarizes git commits for a day, week or month, for everyone or one author, grouped by theme with line counts and highlights | "what did I do this week?" |
+
 ## 📚 More
 
 - 📖 [**docs/mods.md**](docs/mods.md): how the mods behave, setup notes and build your own
+- 🧠 [**docs/skills.md**](docs/skills.md): what each skill does and how to ask for it
 - 🤝 [**CONTRIBUTING.md**](CONTRIBUTING.md): where each kind of plugin goes, and how to add one
