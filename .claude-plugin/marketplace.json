@@ -1,0 +1,15 @@
+{
+  "name": "tomshaw",
+  "description": "Tom Shaw's Claude Code plugins: mods built on function hooks, and later skills, agents and commands.",
+  "owner": {
+    "name": "Tom Shaw"
+  },
+  "plugins": [
+    {
+      "name": "proofread",
+      "description": "Fixes spelling and grammar in your prompt before it reaches Claude, and draws your prompts in a highlighted box with the fixed words called out. /proofread turns it on or off.",
+      "version": "0.1.0",
+      "source": "./mods/proofread"
+    }
+  ]
+}

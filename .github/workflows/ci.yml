@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mods:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      # Plugins need Claude Code 2.1.293 or newer. Bump this on purpose.
+      CLAUDE_CODE_VERSION: 2.1.293
+      DISABLE_AUTOUPDATER: 1
+      CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install Claude Code
+        run: |
+          npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
+          claude --version
+
+      - name: Validate the marketplace
+        run: claude plugin validate .
+
+      - name: Validate and test each plugin
+        run: |
+          # A plugin is any <kind>/<name>/ folder with a tracked plugin.json.
+          plugins=$(git ls-files '*/*/.claude-plugin/plugin.json' | sed 's|/.claude-plugin/plugin.json$||' | sort -u)
+          if [ -z "$plugins" ]; then
+            echo "::error::No plugins found"
+            exit 1
+          fi
+          failed=""
+          for plugin in $plugins; do
+            echo "::group::$plugin"
+            if ! claude plugin validate "$plugin"; then
+              failed="$failed $plugin(validate)"
+            fi
+            if [ -d "$plugin/tests" ] && ! claude plugin test "$plugin"; then
+              failed="$failed $plugin(test)"
+            fi
+            echo "::endgroup::"
+          done
+          if [ -n "$failed" ]; then
+            echo "::error::Failed:$failed"
+            exit 1
+          fi
+          echo "All plugins passed."

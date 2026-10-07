@@ -1,0 +1,10 @@
+{
+  "name": "proofread",
+  "version": "0.1.0",
+  "description": "Fixes spelling and grammar in your prompt before it reaches Claude, and draws your prompts in a highlighted box with the fixed words called out. /proofread turns it on or off.",
+  "author": {
+    "name": "Tom Shaw",
+    "url": "https://github.com/tomshaw"
+  },
+  "types": "./types/index.d.ts"
+}
