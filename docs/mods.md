@@ -18,6 +18,21 @@ Fixes the spelling and grammar of your prompt before Claude reads it, and makes 
 - Your Up-arrow history keeps what you typed: Claude Code saves it before mods run
 - Colors are the theme's `suggestion` (box) and `success` (fixed words). Change `ACCENT` and `FIX` at the top of `hooks/register.tsx`
 
+### 📓 work-journal
+
+Reviews your work for a day, a week or a month, summarized from the prompts you typed into Claude Code.
+
+- `/journal` opens today in a pane beside the chat. `/journal week`, `/journal month`, `yesterday`, `last week`, `last month`, a date (`2026-10-05`) or a month (`2026-09`) pick another window. Weeks run Monday to Sunday
+- Add `web` (`/journal week web`) to also save it as a webpage and open it in your browser. It's one self-contained HTML file in `~/.claude/work-journal/`, with light and dark mode and print styles. Press `o` in the pane for the same
+- In the pane: `d`, `w` and `m` switch to a day, week or month, `p` and `n` step back and forward, `r` rebuilds, `o` opens the webpage, and Esc closes it. The arrows scroll
+- Each review shows the prompt count, projects and active time, a chart of prompts per hour or per day, and a card per project. Each card lists its threads (distinct pieces of work, named in plain language), each with its goal, the decisions made (`✓`) and what's still open (`○`)
+- It reads `~/.claude/history.jsonl`, the file behind your Up-arrow history, pulling out only the window it needs. Pasted blocks are never read: the history keeps a placeholder like `[Pasted text #1]` in their place
+- One model call per project, up to six projects; quieter ones are listed by name. Slash commands, shell commands and short replies ("yes", "go ahead") count toward activity but aren't sent to the model
+- Active time adds up the gaps between prompts, counting any gap over 30 minutes as 5 minutes
+- Finished days, weeks and months are kept and load instantly. The current one is rebuilt when it's more than 15 minutes old, or when you press `r`
+- Settings (`/plugin` → work-journal → configure): **Projects to leave out**, comma-separated parts of project paths, whose prompts are never read; and **Model**, `opus` (default), `sonnet` or `haiku`
+- The history file is Claude Code's own and undocumented, so a future version could change its format
+
 ## 🛠️ Build your own
 
 Start from [Getting started with Claude Code mods](https://claude.dev/blog/getting-started-with-claude-code-mods/). The validate and test commands and the new-mod checklist are in [CONTRIBUTING.md](../CONTRIBUTING.md).
@@ -28,3 +43,5 @@ Start from [Getting started with Claude Code mods](https://claude.dev/blog/getti
 - Claude Code refuses a command name it already has. Catch the error from `$.command.register`, or the rest of `session.start` never runs
 - The test kit has nothing beneath the mod: mock the store with `mock.store(on)` and answer `model.complete` with `{ value: ... }`
 - A `model.complete` hook result and other `$` call results are wrapped as `{ value }` or `{ deny }`
+- A helper that takes `$` must be a top-level function in the hooks module itself, not in an imported file or a closure inside `register`
+- Work that must outlive a command or a button press goes through `$.clock.after(0, ...)`, or it's cut off when that dispatch ends

@@ -18,6 +18,7 @@ Add the marketplace once, then install any plugin by name:
 ```sh
 claude plugin marketplace add tomshaw/claude-code-plugins
 claude plugin install proofread@tomshaw
+claude plugin install work-journal@tomshaw
 ```
 
 Or from inside Claude Code:
@@ -42,6 +43,7 @@ Plugins built on function hooks: they change what Claude Code shows and does, li
 | | Mod | What it does | Command |
 | --- | --- | --- | --- |
 | ✍️ | **proofread** | Fixes spelling and grammar in your prompt before Claude reads it, and highlights your prompts with the fixed words called out | `/proofread` |
+| 📓 | **work-journal** | Daily, weekly and monthly reviews of your work, summarized from the prompts you typed: projects, threads, decisions and open items. In a pane, or as a webpage | `/journal` |
 
 ## 🧠 Skills
 

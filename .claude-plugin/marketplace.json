@@ -12,6 +12,12 @@
       "source": "./mods/proofread"
     },
     {
+      "name": "work-journal",
+      "description": "Daily, weekly and monthly reviews of your work in Claude Code, summarized from the prompts you typed: projects, threads, decisions and open items. /journal opens it in a pane, /journal web as a webpage.",
+      "version": "0.1.2",
+      "source": "./mods/work-journal"
+    },
+    {
       "name": "commit-summary",
       "description": "Summarizes git commits for a day, week or month (today by default), for everyone or one author, grouped by theme with line counts and highlights.",
       "version": "0.1.0",
