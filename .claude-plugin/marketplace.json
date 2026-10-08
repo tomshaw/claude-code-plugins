@@ -24,6 +24,12 @@
       "source": "./mods/laravel-tooling"
     },
     {
+      "name": "commit-msg",
+      "description": "Writes a commit message for your changes in the style of your recent commits, in a pane: pick simple, with body, or with footer; edit it, regenerate it with guidance, step through drafts and copy it. /commit-msg [simple|body|full] [note].",
+      "version": "0.2.0",
+      "source": "./mods/commit-msg"
+    },
+    {
       "name": "commit-summary",
       "description": "Summarizes git commits for a day, week or month (today by default), for everyone or one author, grouped by theme with line counts and highlights.",
       "version": "0.1.0",

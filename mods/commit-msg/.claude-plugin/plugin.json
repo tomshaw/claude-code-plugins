@@ -1,0 +1,26 @@
+{
+  "name": "commit-msg",
+  "version": "0.2.0",
+  "description": "Writes a commit message for your changes in the style of your recent commits, in a pane: pick simple, with body, or with footer; edit it, regenerate it with guidance, step through drafts and copy it. /commit-msg [simple|body|full] [note].",
+  "author": {
+    "name": "Tom Shaw",
+    "url": "https://github.com/tomshaw"
+  },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "model": {
+      "type": "string",
+      "title": "Model",
+      "description": "The model that writes the message.",
+      "default": "sonnet",
+      "options": ["opus", "sonnet", "haiku"]
+    },
+    "style": {
+      "type": "string",
+      "title": "Default style",
+      "description": "The message style the pane starts on: subject only, subject and body, or subject, body and footer.",
+      "default": "simple",
+      "options": ["simple", "body", "full"]
+    }
+  }
+}

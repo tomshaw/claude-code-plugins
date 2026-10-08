@@ -48,6 +48,21 @@ Checks a Laravel project with Pint, Larastan and Pest, and shows the results in 
 - Pest runs without `--parallel`, since per-test results need its TeamCity output, so a full suite takes longer than `composer test`
 - Settings (`/plugin` → laravel-tooling → configure): **Run tests after edits** (off by default) and **Default test filter**
 
+### 📝 commit-msg
+
+Writes a commit message for what you're about to commit, in a pane where you pick the style, tweak it and copy it into VS Code (or any git tool). It never commits anything.
+
+- `/commit-msg` opens the pane and reads your staged diff, your last 20 commit subjects and your branch name, then writes one message in the same style: the same prefixes (`feat:`, `fix:`, …), length, tense and issue-number habits
+- **Style** (`1` `2` `3`): **Simple** (subject only), **With body** (subject plus what changed and why) or **With footer** (adds trailers such as `Refs #690` or `BREAKING CHANGE:`). Switching back to a style you already have shows that draft instead of writing a new one
+- **Edit** (`e`): change the subject, body and footer lines in place, add lines with `a` / `f`. The subject shows its length against 72
+- **Guidance**: type a note (`shorter`, `mention #690`) and press Enter to rewrite the current draft with it. **Regenerate** (`r`) does the same with whatever note is there
+- **Prev / Next** (`p` / `n`) step through the last 10 drafts; **Copy** (`c`) puts the one shown on your clipboard; **Close** (`x`)
+- Start straight on a style or with a note: `/commit-msg full closes #690`, `/commit-msg body this is the Business Central fix`
+- Nothing staged? It uses all uncommitted changes instead (like VS Code's commit-all) and lists new untracked files by name. The pane's header says which
+- No room for the pane (or `claude -p`)? The message is written in the transcript and copied instead
+- Diffs over 60,000 characters are cut. The file list (`--stat`) is always sent whole, so big changes still get a fair summary
+- Settings (`/plugin` → commit-msg → configure): **Model**, `sonnet` (default), `opus` or `haiku`; **Default style**, `simple` (default), `body` or `full`
+
 ## 🛠️ Build your own
 
 Start from [Getting started with Claude Code mods](https://claude.dev/blog/getting-started-with-claude-code-mods/). The validate and test commands and the new-mod checklist are in [CONTRIBUTING.md](../CONTRIBUTING.md).
