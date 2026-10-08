@@ -25,8 +25,8 @@
     },
     {
       "name": "commit-msg",
-      "description": "Turns your staged changes (or, with none staged, all uncommitted changes) into an accurate conventional commit message that matches your repo's recent commits, in a pane: pick subject only, with body or with footer; edit it, regenerate it with guidance, step through drafts and copy it. /commit-msg [simple|body|full] [note].",
-      "version": "0.3.1",
+      "description": "Writes an accurate conventional commit message for your staged changes, using the Claude session that made them to explain why. Matches your repo's commit style; edit, regenerate and copy it from a pane. /commit-msg [simple|body|full] [note].",
+      "version": "0.4.0",
       "source": "./mods/commit-msg"
     },
     {

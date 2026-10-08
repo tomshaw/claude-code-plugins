@@ -1,7 +1,7 @@
 {
   "name": "commit-msg",
-  "version": "0.3.1",
-  "description": "Turns your staged changes (or, with none staged, all uncommitted changes) into an accurate conventional commit message that matches your repo's recent commits, in a pane: pick subject only, with body or with footer; edit it, regenerate it with guidance, step through drafts and copy it. /commit-msg [simple|body|full] [note].",
+  "version": "0.4.0",
+  "description": "Writes an accurate conventional commit message for your staged changes, using the Claude session that made them to explain why. Matches your repo's commit style; edit, regenerate and copy it from a pane. /commit-msg [simple|body|full] [note].",
   "author": {
     "name": "Tom Shaw",
     "url": "https://github.com/tomshaw"
@@ -21,6 +21,12 @@
       "description": "The message style the pane starts on: subject only, subject and body, or subject, body and footer.",
       "default": "simple",
       "options": ["simple", "body", "full"]
+    },
+    "useSession": {
+      "type": "boolean",
+      "title": "Use session context",
+      "description": "Write the message from this Claude session, so it explains why the changes were made; the diff still decides what it describes. Runs on the session's model. Off, or with no session yet, the Model above writes from the diff alone.",
+      "default": true
     }
   }
 }
