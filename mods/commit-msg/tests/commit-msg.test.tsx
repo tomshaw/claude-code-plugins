@@ -21,6 +21,7 @@ type HostOptions = {
   untracked?: Record<string, string>
   isPlaced?: boolean
   replies?: (string | null)[]
+  fork?: string | 'aborted'
 }
 
 const gitHost = (on: On, options: HostOptions = {}) => {
@@ -28,6 +29,7 @@ const gitHost = (on: On, options: HostOptions = {}) => {
   const systems: string[] = []
   const copied: string[] = []
   const commands: string[] = []
+  const forks: string[] = []
   const replies = [...(options.replies ?? ['fix: return the quote total'])]
   const untracked = options.untracked ?? {}
   mock.store(on)
@@ -86,14 +88,24 @@ const gitHost = (on: On, options: HostOptions = {}) => {
 
     return { value: { isAnswered: true as const, text: reply, usage } }
   })
-  on('model.fork', () => ({ value: { isAnswered: false as const, reason: 'nothing-to-fork' as const } }))
+  on('model.fork', (_, e) => {
+    forks.push(e.prompt)
+    if (options.fork === 'aborted') {
+      return { value: { isAnswered: false as const, reason: 'aborted' as const, usage } }
+    }
+    if (options.fork !== undefined) {
+      return { value: { isAnswered: true as const, text: options.fork, usage } }
+    }
+
+    return { value: { isAnswered: false as const, reason: 'nothing-to-fork' as const } }
+  })
   on('ui.copy', (_, e) => {
     copied.push(e.text)
 
     return { value: { isCopied: true as const } }
   })
 
-  return { prompts, systems, copied, commands, clock }
+  return { prompts, systems, copied, commands, forks, clock }
 }
 
 const mountPane = ($: Parameters<TestBody>[0], surface: 'terminal' | 'desktop', placement: 'dock' | 'inline' = 'inline') =>
@@ -343,4 +355,44 @@ test('hides Copy until there is a draft and draws no Close button', async ($, on
   expect(await ui.find({ type: 'Button', key: 'copy' })).toBeUndefined()
   expect(await ui.find({ type: 'Button', key: 'close' })).toBeUndefined()
   expect(await ui.find({ type: 'Button', key: 'regenerate' })).toBeDefined()
+})
+
+test('writes from the session when the fork answers', async ($, on) => {
+  const { prompts, forks, copied } = gitHost(on, { isPlaced: false, fork: 'fix: return the quote total so proposals show it' })
+
+  await $.session.start({ cwd: '/work/app', surface: 'terminal', isInteractive: true })
+  const answer = await $.command.run({ ...COMMAND, command: 'commit-msg', args: '' })
+
+  expect(forks).toHaveLength(1)
+  expect(forks[0]).toContain('Pause the work and write a git commit message instead')
+  expect(forks[0]).toContain('subject line only')
+  expect(forks[0]).toContain(STAGED)
+  expect(prompts).toEqual([])
+  expect(answer.text).toContain('For staged changes, with session context. Copied to your clipboard.')
+  expect(copied).toEqual(['fix: return the quote total so proposals show it'])
+})
+
+test('reports an aborted fork without falling back to the diff', async ($, on) => {
+  const { prompts, forks, clock } = gitHost(on, { fork: 'aborted' })
+
+  await startSession($)
+  await clock.settle()
+
+  expect(forks).toHaveLength(1)
+  expect(prompts).toEqual([])
+
+  const ui = await mountPane($, 'terminal')
+  expect(await ui.find({ type: 'Text', text: /Could not write a message \(aborted\)/ })).toBeDefined()
+})
+
+test('writes from the diff alone when session context is off', { options: { useSession: false } }, async ($, on) => {
+  const { prompts, forks, copied } = gitHost(on, { isPlaced: false, fork: 'fix: from the session' })
+
+  await $.session.start({ cwd: '/work/app', surface: 'terminal', isInteractive: true })
+  const answer = await $.command.run({ ...COMMAND, command: 'commit-msg', args: '' })
+
+  expect(forks).toEqual([])
+  expect(prompts).toHaveLength(1)
+  expect(answer.text).toContain('For staged changes, from the diff alone. Copied to your clipboard.')
+  expect(copied).toEqual(['fix: return the quote total'])
 })
