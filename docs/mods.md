@@ -50,7 +50,7 @@ Checks a Laravel project with Pint, Larastan and Pest, and shows the results in 
 
 ### 📝 commit-msg
 
-Writes a commit message for what you're about to commit, in a pane where you pick the style, tweak it and copy it into VS Code (or any git tool). It never commits anything.
+Turns the work Claude just did into an accurate conventional commit message, in a pane where you pick the style, tweak it and copy it into VS Code (or any git tool). It reads the real diff, so the message describes only what changed, never what was planned. It never commits anything.
 
 - `/commit-msg` opens the pane and reads your staged diff, your last 20 commit subjects and your branch name, then writes one message in the same style: the same prefixes (`feat:`, `fix:`, …), length, tense and issue-number habits
 - **Style** (`1` `2` `3`): **Simple** (subject only), **With body** (subject plus what changed and why) or **With footer** (adds trailers such as `Refs #690` or `BREAKING CHANGE:`). Switching back to a style you already have shows that draft instead of writing a new one

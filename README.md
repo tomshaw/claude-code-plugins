@@ -47,7 +47,7 @@ Plugins built on function hooks: they change what Claude Code shows and does, li
 | ✍️ | **proofread** | Fixes spelling and grammar in your prompt before Claude reads it, and highlights your prompts with the fixed words called out | `/proofread` |
 | 📓 | **work-journal** | Daily, weekly and monthly reviews of your work, summarized from the prompts you typed: projects, threads, decisions and open items. In a pane, or as a webpage | `/journal` |
 | ⚒️ | **laravel-tooling** | Runs Pint and Larastan after Claude edits PHP, and Pest on demand, with the results in a live pane and the status line | `/laravel-tooling` |
-| 📝 | **commit-msg** | Writes a commit message in the style of your recent commits, in a pane: pick simple, with body or with footer, edit it, regenerate it with guidance and copy it | `/commit-msg` |
+| 📝 | **commit-msg** | Turns the work Claude just did into an accurate conventional commit message (`feat:`, `fix:`, …) that matches your repo's recent commits. Pick subject only, with body or with footer; edit, regenerate with guidance, and copy it into your git tool | `/commit-msg` |
 
 ## 🧠 Skills
 
