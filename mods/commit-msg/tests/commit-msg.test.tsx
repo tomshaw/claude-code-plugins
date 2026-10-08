@@ -86,6 +86,7 @@ const gitHost = (on: On, options: HostOptions = {}) => {
 
     return { value: { isAnswered: true as const, text: reply, usage } }
   })
+  on('model.fork', () => ({ value: { isAnswered: false as const, reason: 'nothing-to-fork' as const } }))
   on('ui.copy', (_, e) => {
     copied.push(e.text)
 
@@ -193,7 +194,7 @@ test('answers in the transcript when the pane cannot be placed', async ($, on) =
   const answer = await $.command.run({ ...COMMAND, command: 'commit-msg', args: '' })
 
   expect(answer.text).toContain('fix: return the quote total')
-  expect(answer.text).toContain('For staged changes. Copied to your clipboard.')
+  expect(answer.text).toContain('For staged changes, from the diff alone. Copied to your clipboard.')
   expect(copied).toEqual(['fix: return the quote total'])
 })
 

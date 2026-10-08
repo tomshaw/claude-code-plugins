@@ -18,7 +18,7 @@ const STYLES: Style[] = ['simple', 'body', 'full']
 const STYLE_LABELS: Record<Style, string> = { simple: 'Simple', body: 'With body', full: 'With footer' }
 const STYLE_ALIASES: Record<string, Style> = { simple: 'simple', body: 'body', full: 'full', footer: 'full' }
 
-const settings = { model: 'sonnet', style: 'simple' as Style }
+const settings = { model: 'sonnet', style: 'simple' as Style, useSession: true }
 const runs = { latest: 0 }
 
 const composer = atom({ plugin: 'commit-msg', key: 'composer' } as const, {
@@ -49,6 +49,39 @@ When choosing the type: feat adds a capability, fix corrects a bug, refactor res
 Write the description in the imperative mood, with no trailing period.
 Describe what changed and why it matters, not file names. Never invent work the diff does not show.
 Reply with JSON only, no code fences: {"subject": "...", "body": ["..."], "footer": ["..."]}`
+
+const forkFor = (style: Style, prompt: string): string => `Pause the work and write a git commit message instead. Take no actions; reply only as these rules say.
+
+${systemFor(style)}
+
+This conversation is where the changes below were made. Use it to explain why: the problem being solved, what was asked for, the decisions taken and what was ruled out.
+The diff is the only record of what this commit contains. Describe only work the diff shows: leave out anything this conversation did that the diff does not hold, such as unstaged edits, reverted attempts or other commits, and describe changes the conversation never discussed from the diff alone.
+
+${prompt}`
+
+type Written = { text: string; isFromSession: boolean } | { reason: string }
+
+const write = async ($: EngineInterface, style: Style, prompt: string): Promise<Written> => {
+  if (settings.useSession) {
+    const forked = await $.model.fork({ prompt: forkFor(style, prompt) })
+    if (forked.isAnswered) {
+      return { text: forked.text, isFromSession: true }
+    }
+    if (forked.reason === 'aborted') {
+      return { reason: forked.reason }
+    }
+  }
+
+  const reply = await $.model.complete({
+    model: settings.model,
+    system: systemFor(style),
+    prompt,
+    maxTokens: 1200,
+    timeoutMs: 90_000,
+  })
+
+  return reply.isAnswered ? { text: reply.text, isFromSession: false } : { reason: reply.reason }
+}
 
 type Changes = { diff: string; stat: string; isStaged: boolean; untracked: string[]; added: string }
 
@@ -215,15 +248,9 @@ const generate = async ($: EngineInterface, style: Style, revise: boolean): Prom
 
     const subjects = await git($, ['log', '-n', String(RECENT_COMMITS), '--no-merges', '--format=%s']).catch(() => '')
     const branch = await git($, ['rev-parse', '--abbrev-ref', 'HEAD']).catch(() => '(none)')
-    const reply = await $.model.complete({
-      model: settings.model,
-      system: systemFor(style),
-      prompt: buildPrompt(changes, subjects, branch, note, previous),
-      maxTokens: 1200,
-      timeoutMs: 90_000,
-    })
+    const reply = await write($, style, buildPrompt(changes, subjects, branch, note, previous))
 
-    if (!reply.isAnswered) {
+    if ('reason' in reply) {
       return await fail(`Could not write a message (${reply.reason}).`)
     }
     if (run !== runs.latest) {
@@ -238,7 +265,7 @@ const generate = async ($: EngineInterface, style: Style, revise: boolean): Prom
         ...state,
         phase: 'ready' as const,
         note: state.note.trim() === note ? '' : state.note,
-        scope: changes.isStaged ? 'staged changes' : 'all uncommitted changes',
+        scope: [changes.isStaged ? 'staged changes' : 'all uncommitted changes', reply.isFromSession ? 'with session context' : 'from the diff alone'].join(', '),
         drafts,
         index: drafts.length - 1,
         copiedAt: 0,
@@ -318,6 +345,7 @@ const parseArgs = (args: string): { style: Style | undefined; note: string } => 
 export const register: Register = (on, options) => {
   settings.model = String(options.model ?? 'sonnet') || 'sonnet'
   settings.style = STYLE_ALIASES[String(options.style ?? '')] ?? 'simple'
+  settings.useSession = options.useSession !== false
 
   on('session.start', async ($, e, next) => {
     await $.command
