@@ -14,11 +14,22 @@ const FULL_REPLY = JSON.stringify({
   footer: ['Refs #690'],
 })
 
-const gitHost = (on: On, options: { staged?: string; isPlaced?: boolean; replies?: string[] } = {}) => {
+type HostOptions = {
+  staged?: string
+  unstaged?: string
+  unstagedStat?: string
+  untracked?: Record<string, string>
+  isPlaced?: boolean
+  replies?: (string | null)[]
+}
+
+const gitHost = (on: On, options: HostOptions = {}) => {
   const prompts: string[] = []
   const systems: string[] = []
   const copied: string[] = []
+  const commands: string[] = []
   const replies = [...(options.replies ?? ['fix: return the quote total'])]
+  const untracked = options.untracked ?? {}
   mock.store(on)
   const clock = mock.clock(on)
   on('session.start', (_, e) => ({ cwd: e.cwd }))
@@ -32,6 +43,21 @@ const gitHost = (on: On, options: { staged?: string; isPlaced?: boolean; replies
   )
   on('process.run', (_, e) => {
     const args = e.argv.slice(1).join(' ')
+    commands.push(args)
+    if (args.startsWith('diff --no-index')) {
+      const file = e.argv[e.argv.length - 1] ?? ''
+
+      return { value: { exitCode: 1, stdout: `+++ b/${file}\n${untracked[file] ?? ''}\n`, stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }
+    }
+    if (args.startsWith('diff HEAD --no-color')) {
+      return ok(options.unstaged ?? '')
+    }
+    if (args.startsWith('diff HEAD --stat')) {
+      return ok(options.unstagedStat ?? '')
+    }
+    if (args.startsWith('ls-files')) {
+      return ok(Object.keys(untracked).join('\n'))
+    }
     if (args.startsWith('diff --cached --no-color')) {
       return ok(options.staged ?? STAGED)
     }
@@ -51,7 +77,14 @@ const gitHost = (on: On, options: { staged?: string; isPlaced?: boolean; replies
     prompts.push(e.prompt)
     systems.push(e.system ?? '')
 
-    return { value: { isAnswered: true as const, text: replies.shift() ?? 'fix: again', usage } }
+    const reply = replies.length > 0 ? replies.shift() : 'fix: again'
+    if (reply === null || reply === undefined) {
+      return {
+        value: { isAnswered: false as const, reason: 'api-error' as const, status: 529, error: 'overloaded' as const, usage },
+      }
+    }
+
+    return { value: { isAnswered: true as const, text: reply, usage } }
   })
   on('ui.copy', (_, e) => {
     copied.push(e.text)
@@ -59,17 +92,22 @@ const gitHost = (on: On, options: { staged?: string; isPlaced?: boolean; replies
     return { value: { isCopied: true as const } }
   })
 
-  return { prompts, systems, copied, clock }
+  return { prompts, systems, copied, commands, clock }
 }
 
-const mountPane = ($: Parameters<TestBody>[0], surface: 'terminal' | 'desktop') =>
+const mountPane = ($: Parameters<TestBody>[0], surface: 'terminal' | 'desktop', placement: 'dock' | 'inline' = 'inline') =>
   $.ui.mount({
     plugin: 'commit-msg',
     surface,
     component: 'Pane',
     requestId: 'commit-msg',
-    props: { title: 'Commit message', bodyColumns: 100 } as never,
+    props: { title: 'Commit message', bodyColumns: 100, placement } as never,
   })
+
+const startSession = async ($: Parameters<TestBody>[0], args = '') => {
+  await $.session.start({ cwd: '/work/app', surface: 'terminal', isInteractive: true })
+  await $.command.run({ ...COMMAND, command: 'commit-msg', args })
+}
 
 test('writes a simple message in the pane and copies it', async ($, on) => {
   const { prompts, systems, copied, clock } = gitHost(on, { replies: ['```\nfix: return the quote total\n```'] })
@@ -169,4 +207,139 @@ test('says so when there is nothing to commit', async ($, on) => {
   const ui = await mountPane($, 'terminal')
   expect(await ui.find({ type: 'Text', text: /Nothing to commit/ })).toBeDefined()
   expect(prompts).toEqual([])
+})
+
+test('sends new files and leaves lockfile diffs out', async ($, on) => {
+  const { prompts, commands, clock } = gitHost(on, {
+    staged: '',
+    unstaged: 'diff --git a/app/Old.php b/app/Old.php\n+ old change\n',
+    unstagedStat: ' app/Old.php | 1 +\n composer.lock | 2 +-\n',
+    untracked: { 'app/Invoice.php': '+class Invoice {}', 'package-lock.json': '+{"lockfileVersion": 3}' },
+  })
+
+  await startSession($)
+  await clock.settle()
+
+  expect(prompts[0]).toContain('+class Invoice {}')
+  expect(prompts[0]).not.toContain('lockfileVersion')
+  expect(prompts[0]).toContain('composer.lock | 2 +-')
+  expect(commands.find(args => args.startsWith('diff HEAD --no-color'))).toContain(':(exclude,glob)**/composer.lock')
+  expect(commands.filter(args => args.startsWith('diff --no-index'))).toHaveLength(1)
+})
+
+test('writes a message when only a lockfile changed', async ($, on) => {
+  const { prompts, clock } = gitHost(on, { staged: '', unstagedStat: ' composer.lock | 2 +-\n' })
+
+  await startSession($)
+  await clock.settle()
+
+  expect(prompts).toHaveLength(1)
+  const ui = await mountPane($, 'terminal')
+  expect(await ui.find({ type: 'Text', text: /Nothing to commit/ })).toBeUndefined()
+})
+
+test('colours the conventional subject and flags breaking changes', async ($, on) => {
+  const { systems, clock } = gitHost(on, {
+    replies: [
+      JSON.stringify({
+        subject: 'feat(api)!: drop the v1 totals endpoint',
+        body: ['Clients must call v2.'],
+        footer: ['BREAKING CHANGE: v1 totals are gone', 'Refs #690'],
+      }),
+    ],
+  })
+
+  await startSession($, 'full')
+  await clock.settle()
+
+  expect(systems[0]).toContain('imperative mood')
+  expect(systems[0]).toContain('Put "!" after the type or scope')
+
+  const ui = await mountPane($, 'terminal')
+  expect((await ui.find({ type: 'Text', text: /^feat$/ }))?.props.color).toBe('claude')
+  expect((await ui.find({ type: 'Text', text: /^\(api\)$/ }))?.props.color).toBe('suggestion')
+  expect((await ui.find({ type: 'Text', text: /^!$/ }))?.props.color).toBe('error')
+  expect((await ui.find({ type: 'Text', text: /^drop the v1 totals endpoint$/ }))?.props.bold).toBe(true)
+
+  const breaking = await ui.find({ type: 'Text', text: /^BREAKING CHANGE/ })
+  expect(breaking?.props.color).toBe('error')
+  expect(breaking?.props.bold).toBe(true)
+  expect((await ui.find({ type: 'Text', text: /^Refs #690$/ }))?.props.color).toBe('suggestion')
+})
+
+test('keeps the draft and the note on screen when a regenerate fails', async ($, on) => {
+  const { clock } = gitHost(on, { replies: ['fix: return the quote total', null] })
+
+  await startSession($)
+  await clock.settle()
+
+  const ui = await mountPane($, 'terminal')
+  await ui.input({ key: 'note', text: 'shorter' })
+  await clock.settle()
+
+  expect(await ui.find({ type: 'Text', text: /Could not write a message \(api-error\)/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^return the quote total$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Button', key: 'copy' })).toBeDefined()
+  expect((await ui.find({ type: 'Input', key: 'note' }))?.props.value).toBe('shorter')
+
+  await ui.press({ key: 'style:simple' })
+
+  expect(await ui.find({ type: 'Text', text: /Could not write/ })).toBeUndefined()
+})
+
+test('clears the guidance note after a regenerate', async ($, on) => {
+  const { prompts, clock } = gitHost(on, { replies: ['fix: return the quote total', 'fix: return totals', 'fix: totals'] })
+
+  await startSession($)
+  await clock.settle()
+
+  const ui = await mountPane($, 'terminal')
+  await ui.input({ key: 'note', text: 'shorter' })
+  await clock.settle()
+
+  expect((await ui.find({ type: 'Input', key: 'note' }))?.props.value).toBe('')
+
+  await ui.press({ key: 'regenerate' })
+  await clock.settle()
+
+  expect(prompts[2]).not.toContain('Note from the author')
+})
+
+test('shows the subject counter while editing', async ($, on) => {
+  const { clock } = gitHost(on)
+
+  await startSession($)
+  await clock.settle()
+
+  const ui = await mountPane($, 'terminal')
+  await ui.press({ key: 'edit' })
+
+  expect(await ui.find({ type: 'Input', key: 'subject' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^27\/72$/ })).toBeDefined()
+})
+
+test('draws rules only when docked', async ($, on) => {
+  const { clock } = gitHost(on)
+
+  await startSession($)
+  await clock.settle()
+
+  const inline = await mountPane($, 'terminal', 'inline')
+  expect(await inline.find({ type: 'Text', text: /^─+$/ })).toBeUndefined()
+  await inline.unmount()
+
+  const docked = await mountPane($, 'terminal', 'dock')
+  expect(await docked.findAll({ type: 'Text', text: /^─+$/ })).toHaveLength(2)
+})
+
+test('hides Copy until there is a draft and draws no Close button', async ($, on) => {
+  const { clock } = gitHost(on, { staged: '' })
+
+  await startSession($)
+  await clock.settle()
+
+  const ui = await mountPane($, 'terminal')
+  expect(await ui.find({ type: 'Button', key: 'copy' })).toBeUndefined()
+  expect(await ui.find({ type: 'Button', key: 'close' })).toBeUndefined()
+  expect(await ui.find({ type: 'Button', key: 'regenerate' })).toBeDefined()
 })
