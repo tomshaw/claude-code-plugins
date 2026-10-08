@@ -1,6 +1,6 @@
 {
   "name": "commit-msg",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Writes an accurate conventional commit message for your staged changes, using the Claude session that made them to explain why. Matches your repo's commit style; edit, regenerate and copy it from a pane. /commit-msg [simple|body|full] [note].",
   "author": {
     "name": "Tom Shaw",
