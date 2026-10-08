@@ -9,6 +9,10 @@ const MAX_DIFF = 60_000
 const RECENT_COMMITS = 20
 const MAX_DRAFTS = 10
 const SUBJECT_LIMIT = 72
+const MAX_UNTRACKED = 25
+const LOCKFILES = ['package-lock.json', 'yarn.lock', 'pnpm-lock.yaml', 'bun.lockb', 'composer.lock', 'Cargo.lock', 'Gemfile.lock', 'poetry.lock', 'uv.lock']
+const QUIET_PATHS = ['--', '.', ...LOCKFILES.map(name => `:(exclude,glob)**/${name}`)]
+const CONVENTIONAL = /^([A-Za-z]+)(\([^)]*\))?(!)?(:\s*)(.*)$/s
 
 const STYLES: Style[] = ['simple', 'body', 'full']
 const STYLE_LABELS: Record<Style, string> = { simple: 'Simple', body: 'With body', full: 'With footer' }
@@ -41,10 +45,12 @@ Each "footer" entry is one trailer: "Refs #123" or "Closes #123" when the branch
 const systemFor = (style: Style): string => `You write git commit messages. The user message holds a repository's recent commit subjects, its branch, and a diff.
 Write one commit message for the diff. The subject line matches the recent commits' style exactly: their prefixes (feat:, fix:, chore: and so on), tense, casing, length, and how they reference issue numbers. Add an issue number only when the branch name or a note gives one.
 ${STYLE_RULES[style]}
+When choosing the type: feat adds a capability, fix corrects a bug, refactor restructures without changing behaviour, perf speeds something up, docs, test, build, ci, style and chore cover the rest. Put "!" after the type or scope when the change breaks behaviour callers rely on.
+Write the description in the imperative mood, with no trailing period.
 Describe what changed and why it matters, not file names. Never invent work the diff does not show.
 Reply with JSON only, no code fences: {"subject": "...", "body": ["..."], "footer": ["..."]}`
 
-type Changes = { diff: string; stat: string; isStaged: boolean; untracked: string[] }
+type Changes = { diff: string; stat: string; isStaged: boolean; untracked: string[]; added: string }
 
 const git = async ($: EngineInterface, args: string[]): Promise<string> => {
   const ran = await $.process.run(['git', ...args], { timeoutMs: 20_000 })
@@ -58,18 +64,42 @@ const git = async ($: EngineInterface, args: string[]): Promise<string> => {
 const readChanges = async ($: EngineInterface): Promise<Changes> => {
   const staged = await git($, ['diff', '--cached', '--no-color', '--no-ext-diff'])
   if (staged.trim() !== '') {
-    return { diff: staged, stat: await git($, ['diff', '--cached', '--stat']), isStaged: true, untracked: [] }
+    return {
+      diff: await git($, ['diff', '--cached', '--no-color', '--no-ext-diff', ...QUIET_PATHS]),
+      stat: await git($, ['diff', '--cached', '--stat']),
+      isStaged: true,
+      untracked: [],
+      added: '',
+    }
   }
 
   const hasHead = (await $.process.run(['git', 'rev-parse', '--verify', '--quiet', 'HEAD'])).exitCode === 0
   const base = hasHead ? ['HEAD'] : []
 
+  const untracked = (await git($, ['ls-files', '--others', '--exclude-standard'])).split('\n').filter(line => line !== '')
+
   return {
-    diff: await git($, ['diff', ...base, '--no-color', '--no-ext-diff']),
+    diff: await git($, ['diff', ...base, '--no-color', '--no-ext-diff', ...QUIET_PATHS]),
     stat: await git($, ['diff', ...base, '--stat']),
     isStaged: false,
-    untracked: (await git($, ['ls-files', '--others', '--exclude-standard'])).split('\n').filter(line => line !== ''),
+    untracked,
+    added: await readUntracked($, untracked),
   }
+}
+
+const readUntracked = async ($: EngineInterface, files: string[]): Promise<string> => {
+  const parts: string[] = []
+  let size = 0
+  for (const file of files.filter(one => !LOCKFILES.some(name => one.endsWith(name))).slice(0, MAX_UNTRACKED)) {
+    const ran = await $.process.run(['git', 'diff', '--no-index', '--no-color', '--', '/dev/null', file], { timeoutMs: 10_000 })
+    if (ran.exitCode > 1 || size + ran.stdout.length > MAX_DIFF / 2) {
+      continue
+    }
+    parts.push(ran.stdout)
+    size += ran.stdout.length
+  }
+
+  return parts.join('')
 }
 
 const tidyLines = (lines: string[]): string[] => {
@@ -95,19 +125,20 @@ const format = (draft: Draft): string => {
 }
 
 const buildPrompt = (changes: Changes, subjects: string, branch: string, note: string, previous: Draft | undefined): string => {
+  const combined = changes.diff + changes.added
   const diff =
-    changes.diff.length > MAX_DIFF
-      ? `${changes.diff.slice(0, MAX_DIFF)}\n[diff cut at ${MAX_DIFF} characters; the stat above lists every file]`
-      : changes.diff
+    combined.length > MAX_DIFF
+      ? `${combined.slice(0, MAX_DIFF)}\n[diff cut at ${MAX_DIFF} characters; the stat above lists every file]`
+      : combined
 
   return [
     `Recent commit subjects, newest first:\n${subjects.trim() || '(none yet)'}`,
     `Branch: ${branch.trim()}`,
     note === '' ? '' : `Note from the author: ${note}`,
     previous === undefined ? '' : `The author's current draft, to rewrite following the note:\n${format(previous)}`,
-    changes.untracked.length > 0 ? `New untracked files (contents not shown):\n${changes.untracked.join('\n')}` : '',
+    changes.untracked.length > 0 ? `New untracked files (their contents, where small enough, are in the diff):\n${changes.untracked.join('\n')}` : '',
     `Diff stat:\n${changes.stat.trim()}`,
-    `Diff:\n${diff}`,
+    `Diff (lockfile changes omitted; the stat lists them):\n${diff}`,
   ]
     .filter(part => part !== '')
     .join('\n\n')
@@ -178,7 +209,7 @@ const generate = async ($: EngineInterface, style: Style, revise: boolean): Prom
     }
 
     const changes = await readChanges($)
-    if (changes.diff.trim() === '' && changes.untracked.length === 0) {
+    if (changes.diff.trim() === '' && changes.stat.trim() === '' && changes.untracked.length === 0) {
       return await fail('Nothing to commit: no staged or uncommitted changes.')
     }
 
@@ -206,6 +237,7 @@ const generate = async ($: EngineInterface, style: Style, revise: boolean): Prom
       return {
         ...state,
         phase: 'ready' as const,
+        note: state.note.trim() === note ? '' : state.note,
         scope: changes.isStaged ? 'staged changes' : 'all uncommitted changes',
         drafts,
         index: drafts.length - 1,
@@ -237,7 +269,7 @@ const pickStyle = async ($: EngineInterface, style: Style): Promise<void> => {
 
   const latest = state.drafts.findLastIndex(draft => draft.style === style)
   if (latest >= 0) {
-    await update($, composer, one => ({ ...one, style, index: latest, isEditing: false }))
+    await update($, composer, one => ({ ...one, style, index: latest, phase: 'ready' as const, error: '', isEditing: false }))
 
     return
   }
@@ -266,8 +298,13 @@ const step = ($: EngineInterface, by: number) =>
     const index = Math.min(state.drafts.length - 1, Math.max(0, state.index + by))
     const draft = state.drafts[index]
 
-    return draft === undefined ? state : { ...state, index, style: draft.style, isEditing: false, copiedAt: 0 }
+    return draft === undefined
+      ? state
+      : { ...state, index, style: draft.style, phase: 'ready' as const, error: '', isEditing: false, copiedAt: 0 }
   })
+
+const setLine = ($: EngineInterface, field: 'body' | 'footer', index: number) => (value: string) =>
+  void setDraft($, one => ({ ...one, [field]: one[field].map((old, at) => (at === index ? value : old)) }))
 
 const openPane = ($: EngineInterface) => $.ui.open({ id: PANE, title: 'Commit message', focus: true })
 
@@ -334,7 +371,14 @@ export const register: Register = (on, options) => {
     const isWriting = state.phase === 'writing'
     const canEdit = Input !== undefined && draft !== undefined && !isWriting
     const isEditing = canEdit && state.isEditing
-    const rule = <Text dimColor>{'─'.repeat(Math.max(10, width - 2))}</Text>
+    const isDocked = e.props.placement === 'dock'
+    const rule = isDocked ? <Text dimColor>{'─'.repeat(Math.max(10, width))}</Text> : null
+    const subjectLength = draft?.subject.trim().length ?? 0
+    const counter = (
+      <Text color={subjectLength > SUBJECT_LIMIT ? 'warning' : 'inactive'}>
+        {subjectLength}/{SUBJECT_LIMIT}
+      </Text>
+    )
 
     const header = (
       <Box flexDirection="row" justifyContent="space-between">
@@ -342,11 +386,7 @@ export const register: Register = (on, options) => {
           📝 Commit message
         </Text>
         <Text dimColor>
-          {[
-            state.scope,
-            state.drafts.length > 1 ? `draft ${state.index + 1}/${state.drafts.length}` : '',
-            state.copiedAt > 0 ? '✓ copied' : '',
-          ]
+          {[state.scope, state.drafts.length > 1 ? `draft ${state.index + 1}/${state.drafts.length}` : '']
             .filter(part => part !== '')
             .join(' · ')}
         </Text>
@@ -362,32 +402,50 @@ export const register: Register = (on, options) => {
             label={STYLE_LABELS[style]}
             hotkey={String(index + 1)}
             variant={style === state.style ? 'primary' : undefined}
-            dimColor={style !== state.style}
+            dimColor={isWriting || style !== state.style}
             onPress={() => pickStyle($, style)}
           />
         ))}
       </Box>
     )
 
-    const subjectLength = draft?.subject.trim().length ?? 0
     const shown = draft === undefined ? undefined : { ...draft, body: tidyLines(draft.body), footer: tidyLines(draft.footer) }
-
-    const message =
+    const parts = shown === undefined ? null : CONVENTIONAL.exec(shown.subject.trim())
+    const error =
       state.phase === 'error' ? (
         <Text color="error" wrap="wrap">
-          {state.error}
+          ✗ {state.error}
         </Text>
-      ) : shown === undefined ? (
-        <Text dimColor>{isWriting ? 'Reading your changes and writing…' : 'Run /commit-msg to write a message.'}</Text>
+      ) : null
+
+    const message =
+      shown === undefined ? (
+        (error ?? (
+          <Text dimColor>{isWriting ? '◌ Reading your changes and writing…' : 'Run /commit-msg to write a message.'}</Text>
+        ))
       ) : (
         <Box flexDirection="column">
           <Box flexDirection="row" justifyContent="space-between" gap={1}>
-            <Text bold wrap="wrap">
-              {shown.subject}
-            </Text>
-            <Text color={subjectLength > SUBJECT_LIMIT ? 'warning' : 'inactive'}>
-              {subjectLength}/{SUBJECT_LIMIT}
-            </Text>
+            {parts === null ? (
+              <Text bold wrap="wrap">
+                {shown.subject}
+              </Text>
+            ) : (
+              <Text wrap="wrap">
+                <Text bold color="claude">
+                  {parts[1]}
+                </Text>
+                {parts[2] !== undefined && <Text color="suggestion">{parts[2]}</Text>}
+                {parts[3] !== undefined && (
+                  <Text bold color="error">
+                    !
+                  </Text>
+                )}
+                <Text dimColor>{parts[4]}</Text>
+                <Text bold>{parts[5]}</Text>
+              </Text>
+            )}
+            {counter}
           </Box>
           {shown.style !== 'simple' && shown.body.length > 0 && (
             <Box flexDirection="column" marginTop={1}>
@@ -406,14 +464,20 @@ export const register: Register = (on, options) => {
                 shown.footer
                   .filter(line => line !== '')
                   .map((line, index) => (
-                    <Text key={`footer:${index}`} color="suggestion" wrap="wrap">
+                    <Text
+                      key={`footer:${index}`}
+                      color={/^BREAKING[ -]CHANGE:/.test(line) ? 'error' : 'suggestion'}
+                      bold={/^BREAKING[ -]CHANGE:/.test(line)}
+                      wrap="wrap"
+                    >
                       {line}
                     </Text>
                   ))
               )}
             </Box>
           )}
-          {isWriting && <Text dimColor>Rewriting…</Text>}
+          {isWriting && <Text dimColor>◌ Rewriting…</Text>}
+          {error}
         </Box>
       )
 
@@ -429,6 +493,9 @@ export const register: Register = (on, options) => {
             onInput={value => void setDraft($, one => ({ ...one, subject: value }))}
             onSubmit={value => void setDraft($, one => ({ ...one, subject: value }))}
           />
+          <Box flexDirection="row" justifyContent="flex-end">
+            {counter}
+          </Box>
           {draft.style !== 'simple' && (
             <Box flexDirection="column" marginTop={1}>
               {draft.body.map((line, index) => (
@@ -437,12 +504,8 @@ export const register: Register = (on, options) => {
                   label={index === 0 ? 'Body    ' : '        '}
                   placeholder="(blank line)"
                   value={line}
-                  onInput={value =>
-                    void setDraft($, one => ({ ...one, body: one.body.map((old, at) => (at === index ? value : old)) }))
-                  }
-                  onSubmit={value =>
-                    void setDraft($, one => ({ ...one, body: one.body.map((old, at) => (at === index ? value : old)) }))
-                  }
+                  onInput={setLine($, 'body', index)}
+                  onSubmit={setLine($, 'body', index)}
                 />
               ))}
               <Button
@@ -462,12 +525,8 @@ export const register: Register = (on, options) => {
                   label={index === 0 ? 'Footer  ' : '        '}
                   placeholder="Refs #123"
                   value={line}
-                  onInput={value =>
-                    void setDraft($, one => ({ ...one, footer: one.footer.map((old, at) => (at === index ? value : old)) }))
-                  }
-                  onSubmit={value =>
-                    void setDraft($, one => ({ ...one, footer: one.footer.map((old, at) => (at === index ? value : old)) }))
-                  }
+                  onInput={setLine($, 'footer', index)}
+                  onSubmit={setLine($, 'footer', index)}
                 />
               ))}
               <Button
@@ -498,7 +557,7 @@ export const register: Register = (on, options) => {
       )
 
     return (
-      <Box flexDirection="column" width={width} gap={1}>
+      <Box flexDirection="column" width={width} gap={isDocked ? 1 : 0}>
         {header}
         {styles}
         {rule}
@@ -506,13 +565,15 @@ export const register: Register = (on, options) => {
         {rule}
         {guidance}
         <Box flexDirection="row" gap={1} flexWrap="wrap">
-          <Button
-            key="copy"
-            label={state.copiedAt > 0 ? 'Copied ✓' : 'Copy'}
-            hotkey="c"
-            variant="primary"
-            onPress={press => copy($, press.surface)}
-          />
+          {draft !== undefined && (
+            <Button
+              key="copy"
+              label={state.copiedAt > 0 ? 'Copied ✓' : 'Copy'}
+              hotkey="c"
+              variant="primary"
+              onPress={press => copy($, press.surface)}
+            />
+          )}
           <Button
             key="regenerate"
             label={isWriting ? 'Writing…' : 'Regenerate'}
@@ -543,7 +604,6 @@ export const register: Register = (on, options) => {
               onPress={() => step($, 1)}
             />
           )}
-          <Button key="close" label="Close" hotkey="x" dimColor onPress={() => $.ui.close({ id: PANE })} />
         </Box>
       </Box>
     )
