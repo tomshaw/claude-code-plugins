@@ -95,3 +95,26 @@ Try:
 /five-ws:how move our files from Dropbox to Google Drive
 /five-ws:when did the login emails stop arriving
 ```
+
+### 🔬 paper-trail
+
+A lab notebook for work you'll need to check, however long it takes. Afterwards you can check what Claude decided and why without redoing the work.
+
+- **Use it when the reasoning matters**, not when the task is long: a long unattended run, a tricky bug fix whose cause had to be proven, a change to auth, data, money or deletions, a choice between designs, or anything going to review. Skip it for simple work you watch step by step
+- **One row per real decision**: a choice between options, finished and tested work, a change of direction, an undo, a blocker, a fixed test, or a correction. Routine steps are left out, so the log stays short enough to read
+- **Every row has proof you can open**: a commit, file lines pinned to a commit, a captured command output, or a PR. Prose like "I checked it" is refused
+- **Test runs are captured, not described.** Claude runs tests through the log tool, which saves the output with its exit code. A row that says "pass" while citing a failed run is refused
+- **Nothing is edited.** A wrong row gets a new row that replaces it, and every row is fingerprinted, so changes made by hand show up in the check
+- **Handoffs are marked.** A new chat or session starts with a row naming the earlier rows it didn't write, and treats them as claims to re-check
+- **Checked before you see it**: the tool resolves every piece of evidence and lists commits no row explains. Claude compares the log with what it actually did. A model from another family (Codex, Gemini, etc., if installed and you agree) reviews it, or a fresh Claude subagent if not, labeled as the same family. Every report ends with an **Attention** block naming the reviewer and its concerns, or "No flags"
+- **Stays out of git** (through `.git/info/exclude`, so your `.gitignore` isn't touched) until you promote it to `docs/work-log/` for a PR
+
+Try:
+
+```
+/paper-trail start migrate the jobs table to the new queue
+I'll be away for a few hours, leave a paper trail
+leave a paper trail while you fix the session-expiry bug
+/paper-trail check
+/paper-trail promote
+```

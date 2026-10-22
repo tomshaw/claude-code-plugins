@@ -52,6 +52,12 @@
       "description": "Asks who, what, where, when, why and how about any task, problem or plan, then points out what is missing or does not add up before you start. Use one question at a time or all six together.",
       "version": "0.2.0",
       "source": "./skills/five-ws"
+    },
+    {
+      "name": "paper-trail",
+      "description": "A lab notebook for work whose reasoning you will need to check: one row per real decision with checkable evidence, verified against the repo and reviewed by a second model before you read the report.",
+      "version": "0.1.0",
+      "source": "./skills/paper-trail"
     }
   ]
 }
