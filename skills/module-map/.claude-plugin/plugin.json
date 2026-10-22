@@ -1,0 +1,9 @@
+{
+  "name": "module-map",
+  "version": "0.1.0",
+  "description": "Maps code structure — modules, responsibilities, public surface and dependency flow — for a subsystem, a branch or PR's changes, or a proposed design, and flags architectural violations.",
+  "author": {
+    "name": "Tom Shaw",
+    "url": "https://github.com/tomshaw"
+  }
+}

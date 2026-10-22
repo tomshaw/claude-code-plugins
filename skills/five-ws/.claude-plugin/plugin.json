@@ -1,0 +1,9 @@
+{
+  "name": "five-ws",
+  "version": "0.2.0",
+  "description": "Asks who, what, where, when, why and how about any task, problem or plan, then points out what is missing or does not add up before you start. Use one question at a time or all six together.",
+  "author": {
+    "name": "Tom Shaw",
+    "url": "https://github.com/tomshaw"
+  }
+}

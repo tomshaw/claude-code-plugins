@@ -1,0 +1,9 @@
+{
+  "name": "laymans-terms",
+  "version": "0.1.0",
+  "description": "Explains a technical topic in simple, everyday words so a non-expert understands it on the first read, optionally for a named reader like a client or manager.",
+  "author": {
+    "name": "Tom Shaw",
+    "url": "https://github.com/tomshaw"
+  }
+}

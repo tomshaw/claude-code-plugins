@@ -1,0 +1,57 @@
+{
+  "name": "tomshaw",
+  "description": "Tom Shaw's Claude Code plugins: mods built on function hooks, and later skills, agents and commands.",
+  "owner": {
+    "name": "Tom Shaw"
+  },
+  "plugins": [
+    {
+      "name": "proofread",
+      "description": "Fixes spelling and grammar in your prompt before it reaches Claude, and draws your prompts in a highlighted box with the fixed words called out. /proofread turns it on or off.",
+      "version": "0.1.1",
+      "source": "./mods/proofread"
+    },
+    {
+      "name": "work-journal",
+      "description": "Daily, weekly and monthly reviews of your work in Claude Code, summarized from the prompts you typed: projects, threads, decisions and open items. /journal opens it in a pane, /journal web as a webpage.",
+      "version": "0.1.3",
+      "source": "./mods/work-journal"
+    },
+    {
+      "name": "laravel-tooling",
+      "description": "Runs Pint and Larastan after Claude edits PHP, and Pest or PHPUnit on demand, then shows the results in a live pane and the status line. /laravel-tooling opens the pane.",
+      "version": "0.2.0",
+      "source": "./mods/laravel-tooling"
+    },
+    {
+      "name": "commit-msg",
+      "description": "Writes an accurate conventional commit message for your staged changes, using the Claude session that made them to explain why. Matches your repo's commit style; edit, regenerate and copy it from a pane. /commit-msg [simple|body|full] [note].",
+      "version": "0.4.1",
+      "source": "./mods/commit-msg"
+    },
+    {
+      "name": "commit-summary",
+      "description": "Summarizes git commits for a day, week or month (today by default), for everyone or one author, grouped by theme with line counts and highlights.",
+      "version": "0.1.0",
+      "source": "./skills/commit-summary"
+    },
+    {
+      "name": "module-map",
+      "description": "Maps code structure — modules, responsibilities, public surface and dependency flow — for a subsystem, a branch or PR's changes, or a proposed design, and flags architectural violations.",
+      "version": "0.1.0",
+      "source": "./skills/module-map"
+    },
+    {
+      "name": "laymans-terms",
+      "description": "Explains a technical topic in simple, everyday words so a non-expert understands it on the first read, optionally for a named reader like a client or manager.",
+      "version": "0.1.0",
+      "source": "./skills/laymans-terms"
+    },
+    {
+      "name": "five-ws",
+      "description": "Asks who, what, where, when, why and how about any task, problem or plan, then points out what is missing or does not add up before you start. Use one question at a time or all six together.",
+      "version": "0.2.0",
+      "source": "./skills/five-ws"
+    }
+  ]
+}
