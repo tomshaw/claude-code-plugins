@@ -56,7 +56,7 @@
     {
       "name": "paper-trail",
       "description": "A lab notebook for work whose reasoning you will need to check: one row per real decision with checkable evidence, verified against the repo and reviewed by a second model before you read the report.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": "./skills/paper-trail"
     },
     {
@@ -68,7 +68,7 @@
     {
       "name": "scrutinize",
       "description": "An adversarial second opinion on anything: code, changes, features, documents or arguments. A model from another family (Codex or Gemini, when installed) reviews it blind, Claude checks every finding, and you get only what held up, ranked, with a local report page.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": "./skills/scrutinize"
     }
   ]

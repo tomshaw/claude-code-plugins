@@ -58,7 +58,7 @@ Plugins built on function hooks: they change what Claude Code shows and does, li
 
 ## 🧠 Skills
 
-Instructions Claude loads when your request matches them. Ask in plain words. Click a name for the full guide.
+Instructions Claude loads when your request matches them. Ask in plain words. paper-trail and scrutinize run only when you type their command. Click a name for the full guide.
 
 | | Skill | Why you want it | Try |
 | --- | --- | --- | --- |
@@ -66,7 +66,7 @@ Instructions Claude loads when your request matches them. Ask in plain words. Cl
 | 🗺️ | [**module-map**](docs/skills.md#module-map) | **See the shape of a change, not just its lines.** Modules, dependencies and boundaries for code as it is, a branch, or a plan, with problems flagged | "what did this branch change structurally?" |
 | 💬 | [**laymans-terms**](docs/skills.md#laymans-terms) | **Explain it so anyone gets it.** Everyday words, written for the reader you name, simplified but never wrong | "explain this for a client" |
 | 🧭 | [**five-ws**](docs/skills.md#five-ws) | **Ask what a good reporter would, before you start.** Who, what, where, when, why and how, then where the answers don't add up | "/five-ws add an export button" |
-| 🔬 | [**paper-trail**](docs/skills.md#paper-trail) | **Stop taking Claude's word for it.** Every decision logged with proof you can open, false claims caught, and a second model's review. Check the work in minutes instead of redoing it | "leave a paper trail" |
+| 🔬 | [**paper-trail**](docs/skills.md#paper-trail) | **Stop taking Claude's word for it.** Every decision logged with proof you can open, false claims caught, and a second model's review. Check the work in minutes instead of redoing it | "/paper-trail start <task>" |
 | 🤙 | [**trust-me-bro**](docs/skills.md#trust-me-bro) | **The straight answer, right now.** What changed and what it means for you, in plain words, with every claim marked checked, pretty sure or didn't check | "did it work?" |
 | 🔎 | [**scrutinize**](docs/skills.md#scrutinize) | **A second set of eyes that has to show its work.** Another model reviews it blind, every finding is checked, and you get only what held up, ranked, with a report page | "/scrutinize the latest changes" |
 

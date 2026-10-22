@@ -2,7 +2,7 @@
 
 - 🏠 Overview: [README](../README.md)
 
-Skills are instructions Claude loads when your request matches them. Ask in plain words; you don't need to call them by name.
+Skills are instructions Claude loads when your request matches them. Ask in plain words; you don't need to call them by name. The exceptions are **paper-trail** and **scrutinize**, which run only when you type `/paper-trail` or `/scrutinize`, because one writes a log and the other can send your code to another provider.
 
 ## 🧩 Skill guides
 
@@ -184,7 +184,7 @@ Needs Python 3. Start it with the task, then let Claude work:
 
 ```
 /paper-trail start migrate the jobs table to the new queue
-leave a paper trail while you fix the session-expiry bug
+/paper-trail start fix the session-expiry bug
 /paper-trail check        verify the log and show it
 /paper-trail promote      copy the log into docs/work-log/ for a PR
 ```
@@ -193,6 +193,7 @@ The log lives in `.paper-trail/` and stays out of git until you promote it.
 
 #### 🔧 Details
 
+- **Runs only when you type `/paper-trail`.** Claude won't start a log on its own
 - **One row per real decision**: a choice between options, finished and tested work, a change of direction, an undo, a blocker, a fixed test, or a correction. Routine steps are left out, so the log stays short enough to read
 - **Every row has proof you can open**: a commit, file lines pinned to a commit, a captured command output, or a PR. Prose like "I checked it" is refused
 - **Test runs are captured, not described.** Claude runs tests through the log tool, which saves the output with its exit code. A row that says "pass" while citing a failed run is refused
@@ -270,6 +271,7 @@ claude plugin install scrutinize@tomshaw
 
 #### 🔧 Details
 
+- **Runs only when you type `/scrutinize`.** Saying "second opinion" in passing won't send anything anywhere
 - **Asks before anything leaves your machine,** once per session, naming the provider and saying it can read any file in the folder. Nothing is saved to disk; name a reviewer in the request to skip the question
 - **No other model installed, or you said no:** a fresh read-only Claude subagent reviews it instead, and the report says it was the same family
 - **Reviewers run read-only:** Codex in its `read-only` sandbox, Gemini in `plan` mode. For changes, the diff goes in the brief, so git is only needed for "the latest changes"

@@ -1,6 +1,7 @@
 ---
 name: scrutinize
-description: "Get an adversarial second opinion on anything the user names: code, the latest changes, a feature, a folder, a schema, a document, a proposal or an argument. A reviewer from another model family (Codex or Gemini, when installed) reviews it blind, Claude reviews it too, and every finding is checked and marked confirmed, plausible or rejected. Read-only. Use for /scrutinize, 'scrutinize this', 'tear this apart', 'poke holes in this', 'what's wrong with this', 'second opinion', 'another set of eyes', 'have another model check this', or before shipping, merging or sending something that would hurt if wrong."
+description: "Get an adversarial second opinion on anything: code, the latest changes, a feature, a folder, a document, a proposal or an argument. A reviewer from another model family (Codex or Gemini, when installed) reviews it blind, Claude reviews it too, and every finding is checked and marked confirmed, plausible or rejected. Read-only."
+disable-model-invocation: true
 argument-hint: "[what to scrutinize] [with codex|gemini|claude]"
 ---
 

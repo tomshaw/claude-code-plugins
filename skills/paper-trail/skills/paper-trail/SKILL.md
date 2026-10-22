@@ -1,6 +1,7 @@
 ---
 name: paper-trail
-description: "Keep a lab notebook for work whose reasoning will need checking later: an append-only log with one row per real decision (what, why, checkable evidence, result), checked against the repo and reviewed by a second model before you report. Use for /paper-trail, 'leave a paper trail', 'show me your work', 'log your decisions', 'I'll be away, keep a record', long or unattended runs, tricky fixes, risky changes (auth, data, money, deletions), choices between designs, work going to review, handing work to another session, or when asked 'what did you decide and why' about logged work. Also the log that figure-it-out uses."
+description: "Keep a lab notebook for work whose reasoning will need checking later: an append-only log with one row per real decision (what, why, checkable evidence, result), checked against the repo and reviewed by a second model before you report."
+disable-model-invocation: true
 argument-hint: "[start <task>|check|show|review|promote]"
 ---
 
@@ -20,7 +21,6 @@ All log work goes through `scripts/worklog.py` in this skill's directory (Python
 | `/paper-trail` and a log exists, `check`, "what did you decide" | **Report** on the log: Verify, then show |
 | `review` | Verify only, including the second opinion |
 | `promote` | Promote |
-| Called by figure-it-out or another skill | Start (or join), log, Verify before the final reply |
 
 ## Start
 
