@@ -1,0 +1,9 @@
+{
+  "name": "scrutinize",
+  "version": "0.1.0",
+  "description": "An adversarial second opinion on anything: code, changes, features, documents or arguments. A model from another family (Codex or Gemini, when installed) reviews it blind, Claude checks every finding, and you get only what held up, ranked, with a local report page.",
+  "author": {
+    "name": "Tom Shaw",
+    "url": "https://github.com/tomshaw"
+  }
+}

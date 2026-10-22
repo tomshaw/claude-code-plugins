@@ -64,6 +64,12 @@
       "description": "An instant, plain-English debrief of the work Claude just did: what changed, what it means for you, and how sure it is about each claim, sorted into checked, pretty sure and didn't check. No log, no setup.",
       "version": "0.1.0",
       "source": "./skills/trust-me-bro"
+    },
+    {
+      "name": "scrutinize",
+      "description": "An adversarial second opinion on anything: code, changes, features, documents or arguments. A model from another family (Codex or Gemini, when installed) reviews it blind, Claude checks every finding, and you get only what held up, ranked, with a local report page.",
+      "version": "0.1.0",
+      "source": "./skills/scrutinize"
     }
   ]
 }

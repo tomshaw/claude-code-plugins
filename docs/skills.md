@@ -238,3 +238,42 @@ did it work? give me the short version
 - **It won't run new checks by itself.** When there are ⚠️ items it could check, it offers once
 - File names, code and commit hashes are left out unless you ask
 - **trust-me-bro vs paper-trail:** trust-me-bro is the straight answer you get now; paper-trail is the receipt you keep, with evidence, a log and a second reviewer
+
+
+<a id="scrutinize"></a>
+
+### 🔎 scrutinize: a second set of eyes that has to show its work
+
+Asking Claude to check its own work mostly gets its own opinion back. **scrutinize sends the subject to a model from another family that hasn't seen Claude's take, has Claude review it too, then checks every finding before you see it.**
+
+- **Anything you can name:** "the latest changes", "this feature", `app/Services/`, "the database schema", "this proposal", "this argument". No flags.
+- **Another family, blind:** Codex or Gemini, whichever is installed. It gets the subject, never Claude's suspicions.
+- **Every finding checked:** Claude opens the cited lines and follows the code, then marks each finding **confirmed**, **plausible** or **rejected**, with the reason.
+- **Read-only.** Nothing is edited. Fixes are offered at the end, never applied unasked.
+
+**Use it before you ship, merge or send something that would hurt if wrong.**
+
+**The payoff:** a short, ranked list of real problems with the evidence for each, and none of the noise.
+
+**How to use**
+
+```sh
+claude plugin install scrutinize@tomshaw
+```
+
+```
+/scrutinize                               the latest work in this conversation
+/scrutinize the latest changes
+/scrutinize the auth feature with gemini  pick the reviewer for this run
+/scrutinize this proposal just Claude     no other provider, Claude only
+```
+
+#### 🔧 Details
+
+- **Asks before anything leaves your machine,** once per session, naming the provider and saying it can read any file in the folder. Nothing is saved to disk; name a reviewer in the request to skip the question
+- **No other model installed, or you said no:** a fresh read-only Claude subagent reviews it instead, and the report says it was the same family
+- **Reviewers run read-only:** Codex in its `read-only` sandbox, Gemini in `plan` mode. For changes, the diff goes in the brief, so git is only needed for "the latest changes"
+- **Verdict follows the worst confirmed finding:** Sound, Sound with fixes, Needs work, or Not ready. It never calls anything defect-free
+- **Terminal and page:** a numbered list in the terminal so you can say "fix 2", and a local report page with evidence, how each finding was checked, and what was rejected. The page lives in a private temp folder and is never uploaded
+- **Tests that run the code under review** need your OK first
+- **scrutinize vs code-review vs paper-trail:** `/code-review` hunts bugs in a diff; scrutinize reviews anything, code or not, with a model from another family and checks each finding; paper-trail records your own decisions as you work

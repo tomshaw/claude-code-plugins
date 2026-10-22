@@ -27,6 +27,7 @@ claude plugin install laymans-terms@tomshaw
 claude plugin install five-ws@tomshaw
 claude plugin install paper-trail@tomshaw
 claude plugin install trust-me-bro@tomshaw
+claude plugin install scrutinize@tomshaw
 ```
 
 Or from inside Claude Code:
@@ -67,6 +68,7 @@ Instructions Claude loads when your request matches them. Ask in plain words. Cl
 | 🧭 | [**five-ws**](docs/skills.md#five-ws) | **Ask what a good reporter would, before you start.** Who, what, where, when, why and how, then where the answers don't add up | "/five-ws add an export button" |
 | 🔬 | [**paper-trail**](docs/skills.md#paper-trail) | **Stop taking Claude's word for it.** Every decision logged with proof you can open, false claims caught, and a second model's review. Check the work in minutes instead of redoing it | "leave a paper trail" |
 | 🤙 | [**trust-me-bro**](docs/skills.md#trust-me-bro) | **The straight answer, right now.** What changed and what it means for you, in plain words, with every claim marked checked, pretty sure or didn't check | "did it work?" |
+| 🔎 | [**scrutinize**](docs/skills.md#scrutinize) | **A second set of eyes that has to show its work.** Another model reviews it blind, every finding is checked, and you get only what held up, ranked, with a report page | "/scrutinize the latest changes" |
 
 ## 📚 More
 

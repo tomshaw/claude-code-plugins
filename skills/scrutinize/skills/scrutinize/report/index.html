@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scrutiny report</title>
+<style>
+  :root {
+    --bg: #f6f5f1; --card: #ffffff; --ink: #1d1d1b; --muted: #6b6a64; --line: #e4e2da; --chip: #efede6;
+    --critical: #8e1b2b; --high: #b0321f; --medium: #9a4d00; --low: #735c00;
+    --confirmed: #23744a; --plausible: #85570f; --other: #6b6a64; --on-fill: #ffffff;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15161a; --card: #1e2026; --ink: #ecebe6; --muted: #9a9993; --line: #2d3038; --chip: #272a32;
+      --critical: #ff6b81; --high: #f07167; --medium: #f0a04b; --low: #e2c454;
+      --confirmed: #5cc48a; --plausible: #e2b154; --other: #9a9993; --on-fill: #15161a;
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.55 ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 980px; margin: 0 auto; padding: 48px 16px 64px; }
+  code, .mono { font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  code { background: var(--chip); padding: 1px 5px; border-radius: 5px; overflow-wrap: anywhere; }
+  .eyebrow { margin: 0; color: var(--muted); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
+  h1 { overflow-wrap: anywhere; margin: 6px 0 14px; font-size: clamp(26px, 4vw, 38px); line-height: 1.15; letter-spacing: -.02em; }
+  h2 { margin: 36px 0 12px; font-size: 18px; }
+  .verdict { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin: 0 0 24px; }
+  .verdict b { font-size: 15px; padding: 3px 12px; border-radius: 999px; color: var(--on-fill); background: var(--v); }
+  .verdict span { color: var(--muted); font-size: 17px; max-width: 64ch; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .stat b { display: block; font-size: 26px; letter-spacing: -.02em; }
+  .stat span { color: var(--muted); font-size: 13px; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 20px; }
+  .panel h3 { margin: 0 0 4px; font-size: 13px; color: var(--muted); font-weight: 600; }
+  .panel ul { margin: 0 0 12px; padding-left: 20px; }
+  .panel ul:last-child { margin-bottom: 0; }
+  .reviewers { list-style: none; padding: 0 !important; }
+  .reviewers li { margin: 2px 0; }
+  .reviewers .fam { color: var(--muted); }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+  .filters button {
+    font: inherit; font-size: 13px; color: var(--ink); background: var(--card); border: 1px solid var(--line);
+    border-radius: 999px; padding: 3px 12px; cursor: pointer;
+  }
+  .filters button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .finding { background: var(--card); border: 1px solid var(--line); border-left: 5px solid var(--sev); border-radius: 14px; padding: 18px 22px; margin-bottom: 14px; }
+  .finding header { display: flex; gap: 12px; align-items: baseline; }
+  .finding .num { color: var(--muted); font-weight: 700; font-size: 18px; min-width: 1.6em; }
+  .finding h4 { margin: 0; font-size: 17px; line-height: 1.35; flex: 1; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 10px; }
+  .chip { font-size: 12px; padding: 1px 9px; border-radius: 999px; background: var(--chip); color: var(--muted); }
+  .chip.sev { color: var(--on-fill); background: var(--sev); font-weight: 600; }
+  .chip.ver { color: var(--ver); border: 1px solid var(--ver); background: transparent; font-weight: 600; }
+  .where { margin: 0 0 10px; color: var(--muted); overflow-wrap: anywhere; }
+  dl { margin: 0; display: grid; grid-template-columns: 9em 1fr; gap: 6px 14px; }
+  dt { color: var(--muted); font-size: 13px; padding-top: 1px; }
+  dd { margin: 0; }
+  dd ul { margin: 0; padding-left: 18px; }
+  .rejected li, .disagreements li { margin-bottom: 8px; }
+  .rejected .why, .disagreements .res { color: var(--muted); }
+  .empty { color: var(--muted); }
+  .error { border-color: var(--high); color: var(--high); margin-top: 20px; }
+  footer { margin-top: 36px; border-top: 1px solid var(--line); padding-top: 14px; color: var(--muted); font-size: 13px; }
+  @media (max-width: 600px) {
+    dl { grid-template-columns: 1fr; gap: 2px; }
+    dd { margin-bottom: 8px; }
+  }
+  @media print {
+    body { background: #fff; color: #000; }
+    main { padding: 0; }
+    .filters { display: none; }
+    .finding, .stat, .panel { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<main id="app">
+  <p class="eyebrow">Scrutiny report</p>
+  <h1>No report data</h1>
+  <p class="empty">This page reads <code>report.js</code> from the same folder, and it wasn't found or didn't define <code>window.REPORT</code>.</p>
+</main>
+<script src="report.js"></script>
+<script>
+(function () {
+  const raw = window.REPORT;
+  if (!raw) return;
+
+  const SEV = ['critical', 'high', 'medium', 'low'];
+  const VER = ['confirmed', 'plausible'];
+  const VERDICT_COLOR = { 'sound': 'confirmed', 'sound with fixes': 'plausible', 'needs work': 'high', 'not ready': 'critical' };
+
+  // The data is written by an agent from untrusted reviewer output, so accept
+  // what it meant: a single string where a list belongs, nulls, unknown labels.
+  const lower = s => String(s == null ? '' : s).trim().toLowerCase();
+  const arr = v => (v == null ? [] : Array.isArray(v) ? v : [v]).filter(x => x != null && x !== '');
+  const obj = v => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+  const objs = v => arr(v).filter(x => x && typeof x === 'object');
+
+  // Build nodes with textContent only, so nothing in the report is ever parsed as HTML.
+  function el(tag, attrs, ...kids) {
+    const node = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (k === 'style') node.style.cssText = v; else node.setAttribute(k, v);
+    }
+    for (const kid of kids.flat(Infinity)) {
+      if (kid == null || kid === '') continue;
+      node.append(kid instanceof Node ? kid : String(kid));
+    }
+    return node;
+  }
+  // `backticks` become <code>.
+  function rich(text) {
+    return String(text == null ? '' : text).split('`').map((part, i) => i % 2 ? el('code', null, part) : part);
+  }
+  function list(items, cls) {
+    const xs = arr(items);
+    return xs.length ? el('ul', cls ? { class: cls } : null, xs.map(item => el('li', null, rich(item)))) : null;
+  }
+  const label = s => s ? s[0].toUpperCase() + s.slice(1) : s;
+  const sevRank = s => (SEV.includes(s) ? SEV.indexOf(s) : SEV.length);
+
+  const app = document.getElementById('app');
+  app.replaceChildren();
+
+  try {
+    const R = obj(raw);
+    const findings = objs(R.findings).map(f => ({ ...f, sev: lower(f.severity), ver: lower(f.verdict) }))
+      .sort((a, b) => sevRank(a.sev) - sevRank(b.sev));
+    const rejected = objs(R.rejected);
+    const disagreements = objs(R.disagreements);
+    const reviewers = objs(R.reviewers);
+    const count = v => findings.filter(f => f.ver === v).length;
+
+    document.title = 'Scrutiny · ' + (R.title || 'report');
+    app.append(
+      el('p', { class: 'eyebrow' }, 'Scrutiny report' + (R.date ? ' · ' + R.date : '')),
+      el('h1', null, R.title || 'Scrutiny report')
+    );
+
+    const verdict = obj(R.verdict);
+    if (verdict.label || verdict.summary) {
+      const v = VERDICT_COLOR[lower(verdict.label)] || 'other';
+      app.append(el('p', { class: 'verdict' },
+        verdict.label ? el('b', { style: `--v: var(--${v})` }, verdict.label) : null,
+        el('span', null, rich(verdict.summary))));
+    }
+
+    app.append(el('div', { class: 'stats' },
+      el('div', { class: 'stat' }, el('b', null, count('confirmed')), el('span', null, 'confirmed')),
+      el('div', { class: 'stat' }, el('b', null, count('plausible')), el('span', null, 'plausible')),
+      el('div', { class: 'stat' }, el('b', null, rejected.length), el('span', null, 'rejected')),
+      el('div', { class: 'stat' }, el('b', null, reviewers.length), el('span', null, reviewers.length === 1 ? 'reviewer' : 'reviewers'))
+    ));
+
+    const scope = obj(R.scope);
+    const section = (title, items) => arr(items).length ? [el('h3', null, title), list(items)] : null;
+    app.append(el('div', { class: 'panel' },
+      section('In scope', scope.in),
+      section('Out of scope', scope.out),
+      section('Assumptions', scope.assumptions),
+      reviewers.length ? [
+        el('h3', null, 'Reviewers'),
+        el('ul', { class: 'reviewers' }, reviewers.map(r =>
+          el('li', null, el('b', null, r.name || 'reviewer'), ' ', el('span', { class: 'fam' }, [r.family, r.how].filter(Boolean).join(' · ')))))
+      ] : null
+    ));
+
+    // Findings, with a filter built from the values actually present.
+    app.append(el('h2', null, 'Findings'));
+    const filters = el('div', { class: 'filters', role: 'group', 'aria-label': 'Filter findings' });
+    const box = el('div');
+    let active = 'all';
+    const present = new Set(findings.flatMap(f => [f.sev, f.ver]).filter(Boolean));
+    const keys = ['all', ...VER, ...SEV, ...[...present].filter(k => !VER.includes(k) && !SEV.includes(k))]
+      .filter(k => k === 'all' || present.has(k));
+
+    function renderFindings() {
+      const shown = findings.filter(f => active === 'all' || f.sev === active || f.ver === active);
+      box.replaceChildren(...(shown.length ? shown.map(card) : [el('p', { class: 'empty' }, 'No findings held up under checking. That is not proof there are none; see the limits below.')]));
+      for (const button of filters.children) button.setAttribute('aria-pressed', String(button.dataset.key === active));
+    }
+    for (const key of keys) {
+      const button = el('button', { type: 'button', 'data-key': key }, label(key));
+      button.addEventListener('click', () => { active = key; renderFindings(); });
+      filters.append(button);
+    }
+    if (findings.length) app.append(filters);
+    app.append(box);
+
+    function card(f) {
+      const sevColor = SEV.includes(f.sev) ? f.sev : 'other';
+      const verColor = VER.includes(f.ver) ? f.ver : 'other';
+      const foundBy = arr(f.found_by);
+      const rows = [
+        ['Problem', f.problem ? rich(f.problem) : null],
+        ['Evidence', list(f.evidence)],
+        ['How checked', f.checked ? rich(f.checked) : null],
+        ['Fix', f.fix ? rich(f.fix) : null]
+      ].filter(([, v]) => v);
+      return el('article', { class: 'finding', style: `--sev: var(--${sevColor}); --ver: var(--${verColor})` },
+        el('header', null, el('span', { class: 'num' }, f.id != null ? f.id : ''), el('h4', null, rich(f.title || 'Untitled finding'))),
+        el('div', { class: 'chips' },
+          f.sev ? el('span', { class: 'chip sev' }, f.sev) : null,
+          f.ver ? el('span', { class: 'chip ver' }, f.ver) : null,
+          foundBy.length ? el('span', { class: 'chip' }, 'found by ' + foundBy.join(', ')) : null),
+        f.where ? el('p', { class: 'where mono' }, f.where) : null,
+        rows.length ? el('dl', null, rows.map(([k, v]) => [el('dt', null, k), el('dd', null, v)])) : null
+      );
+    }
+    renderFindings();
+
+    if (disagreements.length) {
+      app.append(el('h2', null, 'Where reviewers disagreed'),
+        el('div', { class: 'panel' }, el('ul', { class: 'disagreements' }, disagreements.map(d =>
+          el('li', null, el('b', null, rich(d.topic)), list(d.positions), el('span', { class: 'res' }, rich(d.resolution)))))));
+    }
+
+    if (rejected.length) {
+      app.append(el('h2', null, 'Rejected findings'),
+        el('div', { class: 'panel' }, el('ul', { class: 'rejected' }, rejected.map(r => {
+          const foundBy = arr(r.found_by);
+          return el('li', null, el('b', null, rich(r.title)),
+            foundBy.length ? el('span', { class: 'why' }, ' (' + foundBy.join(', ') + ')') : null,
+            el('br'), el('span', { class: 'why' }, rich(r.why)));
+        }))));
+    }
+
+    if (arr(R.limits).length) {
+      app.append(el('h2', null, 'Limits of this review'), el('div', { class: 'panel' }, list(R.limits)));
+    }
+  } catch (err) {
+    // Show the failure instead of a silently half-drawn report.
+    app.append(el('p', { class: 'panel error' }, 'Part of this report could not be drawn: ' + (err && err.message || err) + '. The data is in report.js next to this page.'));
+  }
+
+  app.append(el('footer', null, 'Generated by scrutinize · read-only review · this page lives only on this machine'));
+})();
+</script>
+</body>
+</html>
