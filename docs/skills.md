@@ -4,11 +4,38 @@
 
 Skills are instructions Claude loads when your request matches them. Ask in plain words; you don't need to call them by name.
 
-## 🧩 Notes per skill
+## 🧩 Skill guides
 
-### 📊 commit-summary
+<a id="commit-summary"></a>
 
-Summarizes the git commits in a window of time: who did what, grouped by theme, with line counts and highlights.
+### 📊 commit-summary: your standup, written by your commits
+
+"What did I do yesterday?" "What did the team ship this month?" The answer is in git, buried in hundreds of one-line messages. **commit-summary turns them into a recap you can read in a minute.**
+
+- **Grouped by theme**, from what the commits actually describe, not just their `feat:` / `fix:` prefix.
+- **Any window or author:** today, yesterday, a weekday, this or last week or month, or a date range; everyone, you, or one teammate.
+- **The numbers:** commits, merges, contributors, lines added and removed, and a table per author.
+- **Highlights:** the largest commit, most-changed files, reverts, security fixes and merged branches.
+- **Honest when it's quiet.** An empty window says so and points to the last day with commits. It never invents activity.
+
+**The payoff:** standups, weekly updates and monthly reports in seconds, straight from the record.
+
+**How to use**
+
+```sh
+claude plugin install commit-summary@tomshaw
+```
+
+Ask in plain words:
+
+```
+summarize today's commits
+what did I work on this week?
+monthly recap for Jane
+commits from 2026-09-01 to 2026-09-15 on main
+```
+
+#### 🔧 Details
 
 - **The window** defaults to today. Ask for `yesterday`, a weekday, `this week`, `last week`, `this month`, `last month`, `past 7 days`, a date or a range (`2026-09-01..2026-09-15`, "since Sept 1"). Weeks start on Monday. The summary names the window it used
 - **The author** defaults to everyone. Name someone ("what has Jane done this week") or say "my"/"me" for the repo's git user. When a name matches no commits, it looks for the closest author in the window and says which one it picked
@@ -18,18 +45,34 @@ Summarizes the git commits in a window of time: who did what, grouped by theme, 
 - Reads all local branches unless you name one. Merge commits are counted but left out of themes and line counts
 - An empty window says so and shows the last day with commits. It never invents activity
 
-Try:
+<a id="module-map"></a>
+
+### 🗺️ module-map: see the shape of a change, not just its lines
+
+A 40-file diff tells you which lines changed. It doesn't tell you that a new dependency now runs the wrong way, or that two modules just became tangled. **module-map shows the structure that line-by-line diffs hide.**
+
+- **Three modes:** map code as it is, map what a branch, PR or uncommitted work changed (before and after), or map a planned design against today's code.
+- **A clear table:** each module, what it owns, what it exposes and what it depends on, plus a dependency graph for bigger maps.
+- **Problems flagged:** circular dependencies, bypassed boundaries, reaching into another module's private parts, and modules doing two jobs.
+- **Any language or framework.** It learns how your codebase connects its parts before it maps them.
+- **Quiet when nothing changed structurally.** You get one line saying so, not a padded report.
+
+**The payoff:** catch architecture problems in review, before they're merged and expensive to undo.
+
+**How to use**
+
+```sh
+claude plugin install module-map@tomshaw
+```
 
 ```
-summarize today's commits
-what did I work on this week?
-monthly recap for Jane
-commits from 2026-09-01 to 2026-09-15 on main
+map the billing module
+what did this branch change structurally?
+how did the last 3 commits change the dependencies?
+map how adding a payments provider would fit in
 ```
 
-### 🗺️ module-map
-
-Maps the structure of code: which modules exist, what each owns, what other modules use from it, and how dependencies flow. It shows the shape of a change that a line-by-line diff hides.
+#### 🔧 Details
 
 - **Three modes**, picked from how you ask: **existing** maps a folder or feature as it is now; **changes** maps what a branch, commit range or uncommitted work touched, with a before and after; **proposed** maps a plan that isn't built yet against the current code
 - **Changes mode defaults** to your branch plus uncommitted and untracked files, compared with where it split from the default branch (`main` or `master`, detected). On the default branch with nothing changed, it maps the last commit and says so
@@ -39,18 +82,33 @@ Maps the structure of code: which modules exist, what each owns, what other modu
 - **Flags** circular dependencies, bypassed boundaries, use of another module's private parts, an outside system spreading to more modules, modules doing two jobs, and a sharply widened public surface. It only flags what it can point to, judged by the codebase's own conventions
 - When a change only edits code inside existing modules, it says "No structural change" in one line and stops. A vague plan gets a list of open questions, not guesses
 
-Try:
+<a id="laymans-terms"></a>
+
+### 💬 laymans-terms: explain it so anyone gets it
+
+Your client, your boss or your new hire asks what's going on, and the honest answer is full of jargon. **laymans-terms explains it in everyday words, so they understand it on the first read.**
+
+- **Always the same clear shape:** the point, why it matters, an everyday comparison, a real example, and what it means for the reader.
+- **Written for your reader.** Say "for a client" or "for my boss" and it picks the details that matter to them.
+- **Simple, never wrong.** It simplifies without saying anything false, and keeps any warning that would change a decision.
+- **No jargon left behind.** A technical word that must stay is explained once and then used consistently.
+
+**The payoff:** fewer confused replies and follow-up meetings, and more people who get it.
+
+**How to use**
+
+```sh
+claude plugin install laymans-terms@tomshaw
+```
 
 ```
-map the billing module
-what did this branch change structurally?
-how did the last 3 commits change the dependencies?
-map how adding a payments provider would fit in
+/laymans-terms                               re-explain Claude's last reply
+explain passkeys in layman's terms
+explain this bug in plain English for a client
+I'm not technical, what does this change do?
 ```
 
-### 💬 laymans-terms
-
-Explains something technical in simple, everyday words, so someone outside the field understands it on the first read.
+#### 🔧 Details
 
 - **The topic** is whatever you name. Name nothing and it re-explains Claude's last reply
 - **The reader** defaults to a smart adult with no background in the field. Name one ("for a client", "for my boss", "for a new hire") and it picks the details that matter to them
@@ -58,18 +116,36 @@ Explains something technical in simple, everyday words, so someone outside the f
 - Technical words that must stay are explained once and then used consistently. File names, version numbers and code are left out unless you ask
 - It simplifies but never says something false, and keeps any warning that would change a decision
 
-Try:
+<a id="five-ws"></a>
+
+### 🧭 five-ws: ask what a good reporter would, before you start
+
+Most failed work wasn't built badly. It was built for the wrong problem, missed something it touched, or surprised someone nobody thought to tell. **five-ws asks who, what, where, when, why and how before you start, then finds where the answers don't add up.**
+
+- **Six questions, six skills.** Each has its own method and fills a gap Claude leaves when it just answers. The table below shows what each one catches.
+- **All six together** (`/five-ws`): a one-screen brief, then the gaps and contradictions between the answers.
+- **Evidence, not guesses.** Every claim points at a file, commit, document or message, or is labeled inferred. Missing answers say "Unknown."
+
+**The payoff:** the questions you'd have wished you asked come up before the work starts, not after it ships.
+
+**How to use**
+
+```sh
+claude plugin install five-ws@tomshaw
+```
 
 ```
-/laymans-terms
-explain passkeys in layman's terms
-explain this bug in plain English for a client
-I'm not technical, what does this change do?
+/five-ws add an export button to the reports page
+/five-ws:why did our invoice totals change last week
+/five-ws:where rename the "Basic" plan to "Starter"
+/five-ws:who moving the team offsite to Thursdays, for my manager
+/five-ws:how move our files from Dropbox to Google Drive
+/five-ws:when did the login emails stop arriving
 ```
 
-### 🧭 five-ws
+Works on code, projects, processes and decisions. Add `for <reader>` to get it in plain words.
 
-Asks who, what, where, when, why and how about any task, problem or plan, the way a good reporter would. Each question is its own skill with a fixed method and output, and each fills a gap Claude leaves when it just answers. Use one alone, or `/five-ws` to run all six and check the answers against each other. It works on code in a repository, and just as well on a project, a process, an event or a decision you describe.
+#### 🔧 Details
 
 | Skill | Gives you | Catches what would otherwise be missed |
 | --- | --- | --- |
@@ -83,24 +159,40 @@ Asks who, what, where, when, why and how about any task, problem or plan, the wa
 
 - **Two directions.** Point any of them at something that exists (a feature, a problem, an incident) or at work not yet started. Before work, `/five-ws` stops with the questions to ask instead of building on unknowns
 - **Every claim has evidence** (a file, commit, document, message or something you said) or is labeled inferred. Missing answers say "Unknown" and who would know, never a guess
-- **Add "for a client"** (or any reader) to drop technical references and write in plain words
+<a id="paper-trail"></a>
 
-Try:
+### 🔬 paper-trail: stop taking Claude's word for it
+
+Every time Claude says "fixed it" or "all tests pass," you have two options: trust it, or redo the work to check. **paper-trail gives you a third: check it in two minutes.**
+
+- **Proof on every decision:** a commit, the exact lines, or the saved test run. "Trust me" is refused.
+- **A built-in check that catches false claims.** A "pass" on a failed run, evidence that points nowhere and commits nobody explained are all flagged before you see them.
+- **A second opinion included.** Another model reviews the work, and you get a plain **Attention** list, or "No flags."
+- **The full story, including the misses:** the approaches it dropped, the guesses it made and the mistakes it corrected.
+
+**Use it whenever the reasoning matters, however long the task takes:** the overnight refactor you didn't watch, the ten-minute bug fix where the cause had to be proven, the auth, data or payments change you'll answer for, the design choice where the options that lost would otherwise go unrecorded, or the PR your reviewer will question.
+
+**The payoff:** review in minutes instead of redoing hours. Hand work to the next session or teammate without losing context, and back up every decision when someone asks "why?"
+
+**How to use**
+
+```sh
+claude plugin install paper-trail@tomshaw
+```
+
+Needs Python 3. Start it with the task, then let Claude work:
 
 ```
-/five-ws add an export button to the reports page
-/five-ws:why did our invoice totals change last week
-/five-ws:where rename the "Basic" plan to "Starter"
-/five-ws:who moving the team offsite to Thursdays, for my manager
-/five-ws:how move our files from Dropbox to Google Drive
-/five-ws:when did the login emails stop arriving
+/paper-trail start migrate the jobs table to the new queue
+leave a paper trail while you fix the session-expiry bug
+/paper-trail check        verify the log and show it
+/paper-trail promote      copy the log into docs/work-log/ for a PR
 ```
 
-### 🔬 paper-trail
+The log lives in `.paper-trail/` and stays out of git until you promote it.
 
-A lab notebook for work you'll need to check, however long it takes. Afterwards you can check what Claude decided and why without redoing the work.
+#### 🔧 Details
 
-- **Use it when the reasoning matters**, not when the task is long: a long unattended run, a tricky bug fix whose cause had to be proven, a change to auth, data, money or deletions, a choice between designs, or anything going to review. Skip it for simple work you watch step by step
 - **One row per real decision**: a choice between options, finished and tested work, a change of direction, an undo, a blocker, a fixed test, or a correction. Routine steps are left out, so the log stays short enough to read
 - **Every row has proof you can open**: a commit, file lines pinned to a commit, a captured command output, or a PR. Prose like "I checked it" is refused
 - **Test runs are captured, not described.** Claude runs tests through the log tool, which saves the output with its exit code. A row that says "pass" while citing a failed run is refused
@@ -109,12 +201,3 @@ A lab notebook for work you'll need to check, however long it takes. Afterwards 
 - **Checked before you see it**: the tool resolves every piece of evidence and lists commits no row explains. Claude compares the log with what it actually did. A model from another family (Codex, Gemini, etc., if installed and you agree) reviews it, or a fresh Claude subagent if not, labeled as the same family. Every report ends with an **Attention** block naming the reviewer and its concerns, or "No flags"
 - **Stays out of git** (through `.git/info/exclude`, so your `.gitignore` isn't touched) until you promote it to `docs/work-log/` for a PR
 
-Try:
-
-```
-/paper-trail start migrate the jobs table to the new queue
-I'll be away for a few hours, leave a paper trail
-leave a paper trail while you fix the session-expiry bug
-/paper-trail check
-/paper-trail promote
-```

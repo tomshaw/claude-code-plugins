@@ -2,11 +2,36 @@
 
 - 🏠 Overview: [README](../README.md)
 
-## 🧩 Notes per mod
+## 🧩 Mod guides
 
-### ✍️ proofread
+<a id="proofread"></a>
 
-Fixes the spelling and grammar of your prompt before Claude reads it, and makes your prompts easy to spot in the transcript.
+### ✍️ proofread: type fast, never get misread
+
+You type fast, and your prompts show it: "teh", a missing word, a sentence that reads two ways. Claude has to guess what you meant, and sometimes it guesses wrong. **proofread fixes your prompt before Claude ever reads it.**
+
+- **Typos and grammar fixed, nothing reworded.** Code, file paths, commands, URLs and jargon are left exactly as you typed them.
+- **You see every change.** Fixed words are highlighted in green, and a toast lists what changed.
+- **Your prompts stand out.** Each one is drawn in a box, so you can find it fast when you scroll back.
+- **It stays out of your way.** Slash commands, shell commands and very short prompts are skipped. If the fix fails or is slow, your original goes through.
+
+**The payoff:** say what you mean on the first try, at your normal typing speed. It costs about a second and one small Haiku call per prompt.
+
+**How to use**
+
+```sh
+claude plugin install proofread@tomshaw
+```
+
+It's on as soon as it's installed. Just type.
+
+```
+/proofread          turn it on or off
+/proofread on|off   set it
+/proofread status   check it
+```
+
+#### 🔧 Details
 
 - Each prompt you type goes to Haiku first, told to fix typos and clear grammar mistakes only, in the prompt's own language. Code, file paths, identifiers, commands, URLs and jargon are left alone, and nothing is reworded
 - When it changes something, Claude gets the corrected prompt and a toast lists the words it fixed
@@ -18,9 +43,36 @@ Fixes the spelling and grammar of your prompt before Claude reads it, and makes 
 - Your Up-arrow history keeps what you typed: Claude Code saves it before mods run
 - Colors are the theme's `suggestion` (box) and `success` (fixed words). Change `ACCENT` and `FIX` at the top of `hooks/register.tsx`
 
-### 📓 work-journal
+<a id="work-journal"></a>
 
-Reviews your work for a day, a week or a month, summarized from the prompts you typed into Claude Code.
+### 📓 work-journal: know what you did, without writing it down
+
+Friday afternoon, standup or performance review: "what did I actually do?" Your work is spread across a dozen sessions and projects, and you didn't write any of it down. **work-journal writes it up for you from the prompts you typed.**
+
+- **A card for each project**, with the threads of work in plain language, the decisions made (`✓`) and what's still open (`○`).
+- **Any window:** today, yesterday, this or last week, this or last month, or a specific date.
+- **Charts and stats:** prompts per hour or day, active time and projects touched.
+- **A pane or a webpage.** Read it beside the chat, or open a self-contained page to share or print.
+- **Private where it matters.** Leave whole projects out, and pasted text is never read.
+
+**The payoff:** standups in seconds, weekly reviews without guilt, and a record of decisions you'd otherwise lose.
+
+**How to use**
+
+```sh
+claude plugin install work-journal@tomshaw
+```
+
+```
+/journal                    today, in a pane
+/journal week               this week (also: yesterday, last week, month, last month)
+/journal 2026-10-05         a specific day (or a month: 2026-09)
+/journal week web           also open it as a webpage
+```
+
+In the pane: `d` `w` `m` switch day, week or month, `p` / `n` step back and forward, `r` rebuilds, `o` opens the webpage, and `Esc` closes it. Settings (`/plugin` → work-journal → configure): projects to leave out, and the model.
+
+#### 🔧 Details
 
 - `/journal` opens today in a pane beside the chat. `/journal week`, `/journal month`, `yesterday`, `last week`, `last month`, a date (`2026-10-05`) or a month (`2026-09`) pick another window. Weeks run Monday to Sunday
 - Add `web` (`/journal week web`) to also save it as a webpage and open it in your browser. It's one self-contained HTML file in `~/.claude/work-journal/` (or `$CLAUDE_CONFIG_DIR/work-journal/`), with light and dark mode and print styles. Press `o` in the pane for the same
@@ -33,9 +85,38 @@ Reviews your work for a day, a week or a month, summarized from the prompts you 
 - Settings (`/plugin` → work-journal → configure): **Projects to leave out**, comma-separated parts of project paths, whose prompts are never read; and **Model**, `opus` (default), `sonnet` or `haiku`
 - The history file is Claude Code's own and undocumented, so a future version could change its format
 
-### ⚒️ laravel-tooling
+<a id="laravel-tooling"></a>
 
-Checks a Laravel project with Pint, Larastan and Pest or PHPUnit, and shows the results in a pane beside the chat.
+### ⚒️ laravel-tooling: Claude's PHP, checked before you have to
+
+Claude edits your Laravel code, and you find the style drift, the type error and the broken test later, on CI or in review. **laravel-tooling checks every PHP edit as it happens and shows you the results live.**
+
+- **Automatic after every PHP edit:** `pint --dirty` formats, then Larastan finds type errors.
+- **Tests on demand:** Pest, or PHPUnit when Pest isn't installed, filtered or full, and after every edit if you turn that on.
+- **A live pane** with `✓` / `✗` per check, each problem listed by file and line, and tests counted as they finish.
+- **One key to fix it:** `f` writes a prompt listing every failure into your input box, ready to send to Claude.
+- **Always visible:** the status line reads `Pint ✓ · Stan 3✗ · Tests 142`, and a toast warns when a passing check breaks.
+
+**The payoff:** Claude's PHP arrives formatted, type-checked and tested, so you catch problems in seconds instead of on CI.
+
+**How to use**
+
+```sh
+claude plugin install laravel-tooling@tomshaw
+```
+
+It turns on in any project with an `artisan` file, and uses whichever of Pint, Larastan, Pest and PHPUnit are in `vendor/bin`.
+
+```
+/laravel-tooling              open the pane
+/laravel-tooling run          run all checks
+/laravel-tooling pint|stan    run one
+/laravel-tooling tests Quote  run tests, with an optional filter
+```
+
+In the pane: `r` runs everything, `t` runs the tests, and `f` writes a fix prompt. Settings: **Run tests after edits** and **Default test filter**.
+
+#### 🔧 Details
 
 - After a turn in which Claude edited a `.php` file, it runs `pint --dirty` and then Larastan, using `phpstan.neon`, `phpstan.neon.dist` or `phpstan.dist.neon` with a 2G memory limit
 - Tests run with Pest, or PHPUnit when Pest isn't installed, when you ask: `/laravel-tooling tests`, a filter after it (`/laravel-tooling tests Quote`), or `t` in the pane. Turn on **Run tests after edits** to run it after every PHP edit too
@@ -48,9 +129,35 @@ Checks a Laravel project with Pint, Larastan and Pest or PHPUnit, and shows the 
 - Tests run without `--parallel`, since per-test results need TeamCity output, so a full suite takes longer than `composer test`
 - Settings (`/plugin` → laravel-tooling → configure): **Run tests after edits** (off by default) and **Default test filter**
 
-### 📝 commit-msg
+<a id="commit-msg"></a>
 
-Writes the commit message for your staged changes from the Claude session that made them. The diff decides what the message covers; the conversation explains why. It never commits anything.
+### 📝 commit-msg: commit messages that remember why
+
+"fix stuff." "update." "wip." Six months later, nobody knows why the change was made, and that includes you. The diff shows what changed, but the reason was in your conversation with Claude. **commit-msg writes the message from that conversation.**
+
+- **It explains why.** The diff decides what the message covers; the session explains why it was done.
+- **It matches your repo:** the same `feat:` / `fix:` prefixes, tense and issue-number habits as your last 20 commits.
+- **Three styles:** subject only, with a body, or with footers such as `Refs #42`.
+- **Your call, always.** Edit it in place, steer it with a note ("shorter", "mention #42"), regenerate, step through drafts, then copy. It never commits for you.
+
+**The payoff:** a git history that answers "why?" for the rest of the project's life, at the cost of one keystroke.
+
+**How to use**
+
+```sh
+claude plugin install commit-msg@tomshaw
+```
+
+Stage your changes, then:
+
+```
+/commit-msg                   write a message in your repo's style
+/commit-msg full closes #42   start with a style and a note
+```
+
+In the pane: `1` `2` `3` pick the style, `e` edits, `r` regenerates, `p` / `n` step through drafts, and `c` copies. With nothing staged it uses all uncommitted changes. Settings: **Use session context**, **Model** and **Default style**.
+
+#### 🔧 Details
 
 - `/commit-msg` opens a pane and writes one message in your repo's style (the same `feat:`/`fix:` prefixes, tense and issue-number habits as your last 20 commits)
 - Work in the session that isn't staged stays out of the message. With no session yet (a new terminal, or after `/clear`), it writes from the diff alone. The pane's header says which
