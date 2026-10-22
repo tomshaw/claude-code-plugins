@@ -26,6 +26,7 @@ claude plugin install module-map@tomshaw
 claude plugin install laymans-terms@tomshaw
 claude plugin install five-ws@tomshaw
 claude plugin install paper-trail@tomshaw
+claude plugin install trust-me-bro@tomshaw
 ```
 
 Or from inside Claude Code:
@@ -65,6 +66,7 @@ Instructions Claude loads when your request matches them. Ask in plain words. Cl
 | 💬 | [**laymans-terms**](docs/skills.md#laymans-terms) | **Explain it so anyone gets it.** Everyday words, written for the reader you name, simplified but never wrong | "explain this for a client" |
 | 🧭 | [**five-ws**](docs/skills.md#five-ws) | **Ask what a good reporter would, before you start.** Who, what, where, when, why and how, then where the answers don't add up | "/five-ws add an export button" |
 | 🔬 | [**paper-trail**](docs/skills.md#paper-trail) | **Stop taking Claude's word for it.** Every decision logged with proof you can open, false claims caught, and a second model's review. Check the work in minutes instead of redoing it | "leave a paper trail" |
+| 🤙 | [**trust-me-bro**](docs/skills.md#trust-me-bro) | **The straight answer, right now.** What changed and what it means for you, in plain words, with every claim marked checked, pretty sure or didn't check | "did it work?" |
 
 ## 📚 More
 

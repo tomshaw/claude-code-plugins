@@ -201,3 +201,40 @@ The log lives in `.paper-trail/` and stays out of git until you promote it.
 - **Checked before you see it**: the tool resolves every piece of evidence and lists commits no row explains. Claude compares the log with what it actually did. A model from another family (Codex, Gemini, etc., if installed and you agree) reviews it, or a fresh Claude subagent if not, labeled as the same family. Every report ends with an **Attention** block naming the reviewer and its concerns, or "No flags"
 - **Stays out of git** (through `.git/info/exclude`, so your `.gitignore` isn't touched) until you promote it to `docs/work-log/` for a PR
 
+
+<a id="trust-me-bro"></a>
+
+### 🤙 trust-me-bro: the straight answer, right now
+
+"Did it work?" usually gets a confident paragraph you can't check. **trust-me-bro gives you the short version in plain words, with every claim marked by how sure Claude actually is.**
+
+- **Four parts, one screen:** what I did, what it means for you, how sure I am, and your call.
+- **Every claim marked:** ✅ checked (something ran or was read after the last edit), 🤞 pretty sure (reasoned but not run), or ⚠️ didn't check.
+- **Downgrades, never upgrades.** "Tests pass" with no test run becomes ⚠️. A failure goes in the first line, not the fine print.
+- **Instant.** No log, no files, no setup. It works only from what happened in this session.
+
+**Use it at the end of a task when you want the bottom line,** not a record. When the stakes are higher (login, data, money, deletions, or work you didn't watch), it tells you to run [paper-trail](#paper-trail) instead.
+
+**The payoff:** you know in ten seconds what changed and which parts you can lean on.
+
+**How to use**
+
+```sh
+claude plugin install trust-me-bro@tomshaw
+```
+
+```
+/trust-me-bro                    debrief the last task
+did it work? give me the short version
+/trust-me-bro the login fix, for my boss
+```
+
+#### 🔧 Details
+
+- **What it covers** defaults to the most recent task, from your last request to now. Name something ("the login fix", "today's changes") to narrow it
+- **The reader** defaults to a smart adult who didn't watch the work. Name one ("for my boss", "for a client") and it writes for them
+- **✅ needs proof from this session**: a test, build or command that ran after the last edit, or a file it read. A check that ran before a later edit counts as 🤞 at best, and a partial run is named as partial ("the login tests pass")
+- **Assumptions are flagged.** Anything decided without asking you is ⚠️ and appears under "Your call"
+- **It won't run new checks by itself.** When there are ⚠️ items it could check, it offers once
+- File names, code and commit hashes are left out unless you ask
+- **trust-me-bro vs paper-trail:** trust-me-bro is the straight answer you get now; paper-trail is the receipt you keep, with evidence, a log and a second reviewer

@@ -1,0 +1,9 @@
+{
+  "name": "trust-me-bro",
+  "version": "0.1.0",
+  "description": "An instant, plain-English debrief of the work Claude just did: what changed, what it means for you, and how sure it is about each claim, sorted into checked, pretty sure and didn't check. No log, no setup.",
+  "author": {
+    "name": "Tom Shaw",
+    "url": "https://github.com/tomshaw"
+  }
+}
